@@ -1,0 +1,86 @@
+import { initTRPC, TRPCError } from "@trpc/server";
+import { DI as OldDI, initDI } from "./database";
+import { inferAsyncReturnType } from "@trpc/server";
+import { authenticateToken } from "./utils";
+import { RequestContext } from "@mikro-orm/core";
+import { User } from "./entities";
+import { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
+import { CreateExpressContextOptions } from "@trpc/server/adapters/express";
+import { JwtPayload } from "jsonwebtoken";
+import { EventEmitter } from "events";
+import { isCustomError } from "./errors";
+
+export const createContext = async (
+  opts: CreateExpressContextOptions | CreateWSSContextFnOptions
+) => {
+  const getUserIdFromHeader = async () => {
+    try {
+      const req = opts.req;
+      const urlSearchParamsToken = new URL(
+        `http://localhost:4000${req.url}`
+      ).searchParams.get("token");
+      const token =
+        req.headers.authorization?.split(" ")[1] || urlSearchParamsToken;
+      if (!token) {
+        throw new Error("Token is empty");
+      }
+      const userId = (authenticateToken(token) as JwtPayload).userId;
+      return userId;
+    } catch (error) {
+      return null;
+    }
+  };
+  const DI = initDI(OldDI.em.fork());
+  const userId = await getUserIdFromHeader();
+  let user: null | User = null;
+  if (typeof userId === "string") {
+    user = await DI.userRepositroy.findOne(
+      {
+        id: userId,
+      },
+      {
+        populate: true,
+      }
+    );
+  }
+
+  return {
+    userId: user?.id,
+    req: opts.req,
+    res: opts.res,
+  };
+};
+
+export type Context = inferAsyncReturnType<typeof createContext>;
+
+const t = initTRPC.context<Context>().create({
+  errorFormatter({ shape, error }) {
+    return {
+      ...shape,
+      data: {
+        ...shape.data,
+        ...isCustomError(error.cause) ? error.cause.serialize() : {},
+      },
+    };
+  }
+});
+
+export const mikroORMMiddleware = t.middleware(async ({ next, ctx }) => {
+  return RequestContext.createAsync(OldDI.orm.em, () => next({ ctx }));
+});
+
+export const router = t.router;
+export const publicProcedure = t.procedure.use(mikroORMMiddleware);
+
+const isAuthed = t.middleware(({ next, ctx }) => {
+  if (!ctx.userId) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  return next({
+    ctx: {
+      userId: ctx.userId,
+    },
+  });
+});
+
+export const protectedProcedure = publicProcedure.use(isAuthed);

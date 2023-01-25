@@ -1,0 +1,146 @@
+import { RoomSchema, AddRoomSchema } from "../schemas";
+import { DI } from "../database";
+import { protectedProcedure, router } from "../trpc";
+import { getUser } from "../utils";
+import { pusher } from "../pusher";
+import * as errors from "../errors"
+
+export const roomRouter = router({
+  getRooms: protectedProcedure.query(async () => {
+    const rooms = await DI.roomRepository.findAll({
+      populate: true,
+    });
+    const result = [];
+    for (const room of rooms) {
+      result.push({
+        id: room.id,
+        name: room.name,
+        numberOfGuests: room.guests.length
+      });
+    }
+    return result;
+  }),
+  addRoom: protectedProcedure
+    .input(AddRoomSchema)
+    .mutation(async ({ input, ctx }) => {
+      const roomName = input.roomName;
+      const { userId } = ctx;
+      const user = await getUser({ id: userId })
+      if (user.type === "default") {
+        user.type = "host";
+        const room = DI.roomRepository.create({
+          guests: [],
+          host: user,
+          name: roomName,
+        });
+        user.room = room;
+        await DI.userRepositroy.persistAndFlush(user);
+        if (room) {
+          await DI.roomRepository.persistAndFlush(room);
+        }
+        pusher.trigger("rooms", "refetch", null)
+      } else {
+        throw errors.USER_NOT_DEFAULT
+      }
+    }),
+  getRoom: protectedProcedure.query(async ({ ctx }) => {
+    const { userId } = ctx;
+    const user = await getUser({ id: userId })
+    const room = await DI.roomRepository.findOne(
+      {
+        id: user.room?.id,
+      },
+      {
+        populate: ["guests", "host", "opponent"],
+      }
+    );
+    if (room) {
+      const guests = []
+      for (const guest of room.guests) {
+        guests.push({
+          username: guest.username,
+          id: guest.id,
+          type: guest.type,
+        })
+      }
+      return {
+        id: room.id,
+        host: {
+          id: room.host.id,
+          username: room.host.username,
+        },
+        opponent: {
+          id: room.opponent?.id,
+          username: room.opponent?.username,
+        },
+        guests: guests
+      };
+    } else {
+      throw errors.ROOM_NOT_FOUND
+    }
+  }),
+  leaveRoom: protectedProcedure.mutation(async ({ ctx }) => {
+    const { userId } = ctx;
+    const user = await getUser({ id: userId })
+    const room = await DI.roomRepository.findOne({
+      id: user.room?.id,
+    }, {populate: ['host.id', 'opponent.id', 'guests']});
+    if (!room) {
+      throw errors.USER_HAS_NO_ROOM
+    }
+    if (user.type === "host") {
+      const opponent = await DI.userRepositroy.findOne({
+        id: room.opponent?.id,
+      });
+      if (opponent) {
+        opponent.type = "default";
+        opponent.room = undefined;
+        await DI.userRepositroy.persistAndFlush(opponent);
+      }
+      for (const guest of room.guests) {
+        guest.type = "default";
+        guest.room = undefined;
+        await DI.userRepositroy.persistAndFlush(guest);
+      }
+      await DI.roomRepository.removeAndFlush(room);
+    } else if (user.type === "opponent") {
+      room.opponent = undefined;
+      await DI.roomRepository.persistAndFlush(room);
+    }
+    const userType = user.type
+    user.type = "default";
+    user.room = undefined
+    await DI.userRepositroy.persistAndFlush(user);
+    pusher.trigger("room", "refetch", { isLeaving: { user: { id: user.id, isHost: userType === "host" }}})
+    pusher.trigger("rooms", "refetch", null)
+  }),
+  joinRoom: protectedProcedure
+    .input(RoomSchema)
+    .mutation(async ({ input, ctx }) => {
+      const room = await DI.roomRepository.findOne({
+        id: input.roomId,
+      });
+      if (room) {
+        const { userId } = ctx;
+        const user = await getUser({ id: userId })
+        if (!user.room) {
+          user.room = room;
+          if (!room.opponent) {
+            user.type = "opponent";
+            room.opponent = user;
+          } else {
+            user.type = "guest";
+          }
+          await DI.userRepositroy.persistAndFlush(user);
+          await DI.roomRepository.persistAndFlush(room);
+          pusher.trigger("room", "refetch", null)
+          pusher.trigger("rooms", "refetch", null)
+        } else {
+          throw errors.USER_ALREADY_IN_ROOM
+        }
+      } else {
+        throw errors.ROOM_NOT_FOUND
+      }
+    }),
+});
+`                 `

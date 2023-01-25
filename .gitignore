@@ -1,0 +1,8 @@
+node_modules
+.DS_Store
+.env
+server/src/migrations
+build
+dist
+migrations
+.vercel
