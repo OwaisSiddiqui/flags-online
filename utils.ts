@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { DI } from "./database";
+import { DI } from "./db";
 import * as errors from "./errors"
 import { User } from "./entities";
 import { Populate,  } from "@mikro-orm/core";

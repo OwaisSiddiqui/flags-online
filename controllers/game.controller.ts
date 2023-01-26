@@ -1,4 +1,4 @@
-import { DI } from "../database";
+import { DI } from "../db";
 import { Game, User } from "../entities";
 import { FlagSchema, QuestionSchema } from "../schemas";
 import { protectedProcedure, router } from "../trpc";

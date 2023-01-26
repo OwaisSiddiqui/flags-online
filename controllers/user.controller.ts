@@ -1,5 +1,5 @@
 import { LoginSchema, SignupSchema, UserExistsSchema } from "../schemas";
-import { DI } from "../database";
+import { DI } from "../db";
 import { protectedProcedure, publicProcedure, router } from "../trpc";
 import bcrypt from "bcrypt";
 import { generateAccessToken } from "../utils";

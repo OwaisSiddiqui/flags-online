@@ -20,7 +20,7 @@ export const DI = {} as {
   gameRepository: CustomGameRepository;
 };
 
-export const initDatabase = async () => {
+export const initDb = async () => {
   const orm = await MikroORM.init<PostgreSqlDriver>(MikroORMOptions);
 
   DI.orm = orm;

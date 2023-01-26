@@ -1,2 +1,2 @@
-export * from "./DatabaseSeeder";
+export * from "./DbSeeder";
 export * from "./FlagsSeeder";

@@ -7,7 +7,7 @@ import express from "express";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
 import cors from "cors";
-import { initDatabase } from "../database";
+import { initDb } from "../db";
 import { userRouter, roomRouter } from "../controllers";
 import { gameRouter } from "../controllers/game.controller";
 import { getEnv, isProduction } from "../utils";
@@ -49,7 +49,7 @@ app.use(
   })
 );
 
-initDatabase();
+initDb();
 
 if (!isProduction()) {
   server.listen(PORT, "localhost", () => {

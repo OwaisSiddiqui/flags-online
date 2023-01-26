@@ -21,7 +21,7 @@ if (isProduction()) {
     password: getEnv("AWS_RDS_FLAGS_ONLINE_POSTGRESQL_PASSWORD")
   }
 } else {
-  options = {...options, dbName: getEnv("PGDATABASE"),}
+  options = {...options, dbName: getEnv("PGDB"),}
 }
 
 export default options

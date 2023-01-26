@@ -1,5 +1,5 @@
 import { initTRPC, TRPCError } from "@trpc/server";
-import { DI as OldDI, initDI } from "./database";
+import { DI as OldDI, initDI } from "./db";
 import { inferAsyncReturnType } from "@trpc/server";
 import { authenticateToken, getEnv } from "./utils";
 import { RequestContext } from "@mikro-orm/core";

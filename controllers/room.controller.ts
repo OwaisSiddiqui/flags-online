@@ -1,5 +1,5 @@
 import { RoomSchema, AddRoomSchema } from "../schemas";
-import { DI } from "../database";
+import { DI } from "../db";
 import { protectedProcedure, router } from "../trpc";
 import { getUser } from "../utils";
 import { pusher } from "../pusher";

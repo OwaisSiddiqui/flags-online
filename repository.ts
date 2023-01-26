@@ -1,5 +1,5 @@
 import { EntityRepository } from "@mikro-orm/core";
-import { DI } from "./database";
+import { DI } from "./db";
 import { Game, Room, Question, Flag } from "./entities";
 import { shuffleArray } from "./utils";
 
