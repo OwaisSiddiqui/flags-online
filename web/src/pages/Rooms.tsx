@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { GetRoomsOutput, trpc } from "../client";
+import { GetRoomsOutput, trpc } from "../utils/trpc";
 import { useUser } from "../providers/userContext";
 import { pusher } from "../utils/pusher";
 

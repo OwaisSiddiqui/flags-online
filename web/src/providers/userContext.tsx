@@ -5,7 +5,7 @@ import React, {
   useState,
 } from "react";
 import { useNavigate } from "react-router-dom";
-import { trpc, User } from "../client";
+import { trpc, User } from "../utils/trpc";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 import { TRPCError } from "@trpc/server";
 import { useToken } from "./useToken";

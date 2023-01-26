@@ -1,6 +1,6 @@
 import React, { FormEvent, useRef, useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { trpc } from "../client";
+import { trpc } from "../utils/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useUser } from "../providers/userContext";

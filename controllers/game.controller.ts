@@ -165,7 +165,7 @@ export const gameRouter = router({
         }
       }
     }),
-  getCurrentQuestion: protectedProcedure.query(async ({ ctx }) => {
+  currentQuestion: protectedProcedure.query(async ({ ctx }) => {
     const { userId } = ctx;
     const user = await getUser({ id: userId })
     const game = await DI.gameRepository.findOne({

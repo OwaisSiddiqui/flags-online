@@ -1,6 +1,6 @@
-import React, { PropsWithChildren, useRef, useState } from "react";
+import React, { PropsWithChildren, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Question, trpc } from "../client";
+import { Question, trpc } from "../utils/trpc";
 import { pusher } from "../utils/pusher";
 
 const Option = ({
@@ -57,7 +57,7 @@ const Game = () => {
       enabled: !winner
     });
   const { data: question, refetch: refetchCurrentQuestion } =
-    trpc.game.getCurrentQuestion.useQuery(undefined, {
+    trpc.game.currentQuestion.useQuery(undefined, {
       enabled: !winner,
       retry: 0,
       refetchOnWindowFocus: false

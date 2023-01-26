@@ -1,14 +1,13 @@
 {
   "scripts": {
-    "dev": "nodemon src/api/index.ts",
-    "build:local": "tsc",
-    "build": "tsc && cp -R build/. .. && cd ..",
+    "dev": "nodemon api/index.ts",
+    "build:server": "tsc",
     "start": "node build/api/index.js",
-    "seed-database-dev": "NODE_ENV=development npx mikro-orm seeder:run",
-    "seed-database-prod": "NODE_ENV=production npx mikro-orm seeder:run",
-    "initialize-database-dev": "NODE_ENV=development npx mikro-orm migration:create && NODE_ENV=development npx mikro-orm migration:up",
-    "initialize-database-prod": "NODE_ENV=production npx mikro-orm migration:create && NODE_ENV=production npx mikro-orm migration:up",
-    "vercel-build": "cd web && npm run build"
+    "seed:dev": "NODE_ENV=development npx mikro-orm seeder:run",
+    "seed:prod": "NODE_ENV=production npx mikro-orm seeder:run",
+    "db:dev": "NODE_ENV=development npx mikro-orm migration:create && NODE_ENV=development npx mikro-orm migration:up",
+    "db:prod": "NODE_ENV=production npx mikro-orm migration:create && NODE_ENV=production npx mikro-orm migration:up",
+    "build:vercel": "cd web && npm run build"
   },
   "dependencies": {
     "@mikro-orm/cli": "^5.6.0",

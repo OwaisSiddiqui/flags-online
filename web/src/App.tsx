@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { UserProvider } from "./providers/userContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { trpc } from "./client";
+import { trpc } from "./utils/trpc";
 import { createWSClient, httpBatchLink, splitLink, wsLink } from "@trpc/client";
 import { TokenProvider, useToken } from "./providers/useToken";
 import { isProduction } from "./utils";

@@ -1,6 +1,6 @@
 import React, { useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { trpc } from "../client";
+import { trpc } from "../utils/trpc";
 import { useUser } from "../providers/userContext";
 import { pusher } from "../utils/pusher";
 
