@@ -1,7 +1,8 @@
 {
   "scripts": {
     "dev": "nodemon src/api/index.ts",
-    "build": "tsc && cp -R build/. ..",
+    "build:local": "tsc",
+    "build": "tsc && cp -R build/. .. && cd ..",
     "start": "node build/api/index.js",
     "seed-database-dev": "NODE_ENV=development npx mikro-orm seeder:run",
     "seed-database-prod": "NODE_ENV=production npx mikro-orm seeder:run",

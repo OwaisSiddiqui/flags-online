@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.appRouter = void 0;
+exports.config = exports.appRouter = void 0;
 require("dotenv/config");
 const http_1 = __importDefault(require("http"));
 const trpc_1 = require("../trpc");
@@ -63,4 +63,7 @@ const PORT = parseInt(PORT_STRING);
         console.log(`HTTP server listening on port ${PORT}`);
     });
 }))();
-module.exports = app;
+exports.config = {
+    runtime: 'edge',
+};
+exports.default = app;

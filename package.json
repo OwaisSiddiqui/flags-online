@@ -11,6 +11,6 @@
     "dev:server": "NODE_ENV=development npm run dev --workspace=server",
     "build:server": "npm run build --workspace=server",
     "start:server": "NODE_ENV=production npm run start --workspace=server",
-    "vercel-build": "cd web && npm run build && cd ../server && npm run build"
+    "vercel-build": "rm -rf api && mkdir -p api && touch api/index.js && cd web && npm run build && cd ../server && npm run build"
   }
 }

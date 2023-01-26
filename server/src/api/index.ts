@@ -61,8 +61,7 @@ const PORT = parseInt(PORT_STRING);
   });
 })();
 
-module.exports = app
-
 export const config = {
   runtime: 'edge',
-};
+}
+export default app
