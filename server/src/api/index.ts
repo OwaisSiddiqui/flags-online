@@ -35,15 +35,17 @@ const PORT = parseInt(PORT_STRING);
     server,
   });
   applyWSSHandler({ wss, router: appRouter, createContext });
-  wss.on("listening", () => {
-    console.log(`WebSocket server listening on port ${PORT}`);
-  });
-  wss.on("connection", (ws) => {
-    console.log("+ WebSocket connection");
-    ws.once("close", () => {
-      console.log("- WebSocket connection");
+  if (!isProduction()) {
+    wss.on("listening", () => {
+      console.log(`WebSocket server listening on port ${PORT}`);
     });
-  });
+    wss.on("connection", (ws) => {
+      console.log("+ WebSocket connection");
+      ws.once("close", () => {
+        console.log("- WebSocket connection");
+      });
+    });
+  }
 
   app.use(cors({ credentials: true, origin: isProduction() ? undefined : "http://localhost:3000" }));
   app.use(
@@ -60,3 +62,7 @@ const PORT = parseInt(PORT_STRING);
 })();
 
 module.exports = app
+
+export const config = {
+  runtime: 'edge',
+};

@@ -2,7 +2,7 @@
   "scripts": {
     "dev": "nodemon src/api/index.ts",
     "build": "tsc && cp -R build/. ..",
-    "start": "node build/index.js",
+    "start": "node build/api/index.js",
     "seed-database-dev": "NODE_ENV=development npx mikro-orm seeder:run",
     "seed-database-prod": "NODE_ENV=production npx mikro-orm seeder:run",
     "initialize-database-dev": "NODE_ENV=development npx mikro-orm migration:create && NODE_ENV=development npx mikro-orm migration:up",

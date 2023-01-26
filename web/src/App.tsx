@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { trpc } from "./client";
 import { createWSClient, httpBatchLink, splitLink, wsLink } from "@trpc/client";
 import { TokenProvider, useToken } from "./providers/useToken";
+import { isProduction } from "./utils";
 
 const PORT = 4000;
 
@@ -12,20 +13,19 @@ const Home = () => {
   const { token } = useToken();
   const [queryClient] = useState(() => new QueryClient());
   const trpcClient = useMemo(() => {
-    const wsClient = createWSClient({
-      url: `ws://localhost:${PORT}/api/trpc?token=${token}`,
-    });
     return trpc.createClient({
       links: [
         splitLink({
           condition(op) {
             return op.type === "subscription";
           },
-          true: wsLink({
-            client: wsClient,
-          }),
+          true: !isProduction() ? wsLink({
+            client: createWSClient({
+              url: `ws://localhost:${PORT}/api/trpc?token=${token || localStorage.getItem("token")}`,
+            }),
+          }) : [],
           false: httpBatchLink({
-            url: import.meta.env.NODE_ENV === "production" ? `/api/trpc` : `http://localhost:${PORT}/api/trpc`,
+            url: isProduction() ? `/api/trpc` : `http://localhost:${PORT}/api/trpc`,
             headers: {
               Authorization: `Bearer ${token || localStorage.getItem("token")}`,
             },

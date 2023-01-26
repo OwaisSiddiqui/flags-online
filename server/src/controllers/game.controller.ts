@@ -155,14 +155,14 @@ export const gameRouter = router({
         await DI.gameRepository.persistAndFlush(game);
         pusher.trigger("currentQuestion", "refetch", null)
       } else if (penalty === 0) {
+        await DI.gameRepository.persistAndFlush(game);
         if (game.room.host.id === user.id) {
-          countdownPenalty(game, user);
+          await countdownPenalty(game, user);
         } else if (game.room.opponent?.id === user.id) {
-          countdownPenalty(game, user);
+          await countdownPenalty(game, user);
         } else {
           throw errors.USER_NOT_HOST_OR_OPPONENT
         }
-        await DI.gameRepository.persistAndFlush(game);
       }
     }),
   getCurrentQuestion: protectedProcedure.query(async ({ ctx }) => {

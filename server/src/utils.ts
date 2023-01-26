@@ -60,13 +60,15 @@ export const sleep = (waitTimeInMs: number) =>
     }
   }
 
-  export const isProduction = () => {
-    return process.env.NODE_ENV === "production"
-  }
-
-  export const getEnv = (env: string | undefined, name: string) => {
+  export const getEnv = (name: string) => {
+    const env = process.env[name]
     if (!env) {
         throw new Error(`${name} env is not defined`)
     }
     return env;
 }
+
+  export const isProduction = () => {
+    return process.env.NODE_ENV === "production" || process.env.APP_ENV === "vercel"
+  }
+

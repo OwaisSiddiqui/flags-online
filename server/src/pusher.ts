@@ -1,10 +1,10 @@
 import Pusher from "pusher"
 import { getEnv } from "./utils"
 
-const PUSHER_APP_ID = getEnv(process.env.PUSHER_APP_ID, "PUSHER_APP_ID")
-const PUSHER_KEY = getEnv(process.env.PUSHER_KEY, "PUSHER_KEY")
-const PUSHER_SECERT = getEnv(process.env.PUSHER_SECRET, "PUSHER_SECRET")
-const PUSHER_CLUSTER = getEnv(process.env.PUSHER_CLUSTER, "PUSHER_CLUSTER")
+const PUSHER_APP_ID = getEnv("PUSHER_APP_ID")
+const PUSHER_KEY = getEnv("PUSHER_KEY")
+const PUSHER_SECERT = getEnv("PUSHER_SECRET")
+const PUSHER_CLUSTER = getEnv("PUSHER_CLUSTER")
  
 
 export const pusher = new Pusher({
