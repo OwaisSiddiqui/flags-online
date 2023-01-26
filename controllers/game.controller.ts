@@ -5,6 +5,7 @@ import { protectedProcedure, router } from "../trpc";
 import { getUser, sleep } from "../utils";
 import * as errors from "../errors"
 import { pusher } from "../pusher";
+import { TRPCError } from "@trpc/server";
 
 const PENALTY_TIME = 3;
 
@@ -35,12 +36,20 @@ const countdownPenalty = async (game: Game, user: User) => {
     await DI.gameRepository.persistAndFlush(game);
     pusher.trigger("penalty", "refetch", null)
   }
+  pusher.trigger("penalty", "refetch", null)
 };
 
 export const gameRouter = router({
   createGame: protectedProcedure.mutation(async ({ ctx }) => {
     const { userId } = ctx;
-    const user = await getUser({ id: userId })
+    const user = await DI.userRepositroy.findOne({
+      id: userId
+    }, {
+      populate: ['type', 'room.id']
+    })
+    if (!user) {
+      throw errors.USER_NOT_FOUND
+    }
     if (user.type === "host") {
       const roomId = user.room?.id;
       if (roomId) {
@@ -62,9 +71,18 @@ export const gameRouter = router({
   }),
   getPenalty: protectedProcedure.query(async ({ ctx }) => {
     const { userId } = ctx;
-    const user = await getUser({ id: userId })
+    const user = await DI.userRepositroy.findOne({
+      id: userId
+    }, {
+      populate: ['room.game.id', 'id']
+    })
+    if (!user) {
+      throw errors.USER_NOT_FOUND
+    }
     const game = await DI.gameRepository.findOne({
       id: user.room?.game?.id
+    }, {
+      populate: ['room.host.id', 'room.opponent.id', 'opponentPenalty', 'hostPenalty']
     })
     if (game) {
       await DI.em.populate(game, ["hostPenalty", "opponentPenalty"]);
@@ -83,13 +101,20 @@ export const gameRouter = router({
     .input(QuestionSchema.merge(FlagSchema))
     .mutation(async ({ input, ctx }) => {
       const { userId } = ctx;
-      const user = await getUser({ id: userId })
+      const user = await DI.userRepositroy.findOne({
+        id: userId
+      }, {
+        populate: ['room.game.id', 'id']
+      })
+      if (!user) {
+        throw errors.USER_NOT_FOUND
+      }
       const question = await DI.questionRepository.findOne(
         {
           id: input.questionId,
         },
         {
-          populate: ["flag"],
+          populate: ["flag.country"],
         }
       );
       if (!question) {
@@ -97,6 +122,8 @@ export const gameRouter = router({
       }
       const game = await DI.gameRepository.findOne({
         id: user.room?.game?.id,
+      }, {
+        populate: ['room.opponent.id', 'hostPenalty', 'opponentPenalty', 'room.host.id', 'hostScore','opponentScore', 'room.host.username', 'questionIndex', 'questions.id']
       });
       if (!game) {
         throw errors.GAME_NOT_FOUND
@@ -163,11 +190,23 @@ export const gameRouter = router({
         } else {
           throw errors.USER_NOT_HOST_OR_OPPONENT
         }
+      } else {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Something's not right..."
+        })
       }
     }),
   currentQuestion: protectedProcedure.query(async ({ ctx }) => {
     const { userId } = ctx;
-    const user = await getUser({ id: userId })
+    const user = await DI.userRepositroy.findOne({
+      id: userId
+    }, {
+      populate: ['room.game.id']
+    })
+    if (!user) {
+      throw errors.USER_NOT_FOUND
+    }
     const game = await DI.gameRepository.findOne({
       id: user.room?.game?.id
     }, {

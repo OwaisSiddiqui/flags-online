@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import Home from "./App";
+import App from "./App";
 import { BrowserRouter } from "react-router-dom";
 import { Routes, Route } from "react-router-dom";
 import Room from "./pages/Room";
@@ -13,7 +13,7 @@ import { Landing } from "./pages/Landing";
 ReactDOM.render(
   <BrowserRouter>
     <Routes>
-      <Route path="/" element={<Home />}>
+      <Route path="/" element={<App />}>
         <Route index element={<Landing />} />
         <Route path="home" element={<Rooms />} />
         <Route path="room" element={<Room />} />

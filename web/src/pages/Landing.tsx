@@ -46,6 +46,13 @@ const SignupForm = () => {
       }, {
         onSuccess(data) {
           setToken(data)
+        },
+        onError(error) {
+          if (error.data?.type === "PASSWORD_AND_REPEAT_PASSWORD_NOT_SAME") {
+            setError("repeatPassword", {message: "Password and repeat password are not the same"})
+          } else if (error.data?.type === "USERNAME_ALREADY_EXISTS") {
+            setError("username", {message: "Username already exists"})
+          }
         }
       })
   };

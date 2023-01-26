@@ -1,39 +1,41 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { UserProvider } from "./providers/userContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { trpc } from "./utils/trpc";
-import { createWSClient, httpBatchLink, splitLink, wsLink } from "@trpc/client";
+import { createWSClient, httpBatchLink as createHttpBatchLink, splitLink, wsLink } from "@trpc/client";
 import { TokenProvider, useToken } from "./providers/useToken";
-import { isProduction } from "./utils";
-
-const PORT = 4000;
+import { getEnv, isProduction } from "./utils";
 
 const Home = () => {
   const { token } = useToken();
   const [queryClient] = useState(() => new QueryClient());
-  const trpcClient = useMemo(() => {
-    return trpc.createClient({
-      links: [
-        splitLink({
-          condition(op) {
-            return op.type === "subscription";
-          },
-          true: !isProduction() ? wsLink({
-            client: createWSClient({
-              url: `ws://localhost:${PORT}/api/trpc?token=${token || localStorage.getItem("token")}`,
-            }),
-          }) : [],
-          false: httpBatchLink({
-            url: isProduction() ? `/api/trpc` : `http://localhost:${PORT}/api/trpc`,
-            headers: {
-              Authorization: `Bearer ${token || localStorage.getItem("token")}`,
+  const [trpcClient] = useState(() => {
+    const SERVER_PORT = getEnv(import.meta.env.VITE_DEV_SERVER_PORT, 'VITE_DEV_SERVER_PORT')
+      const httpBatchLink = createHttpBatchLink({
+        url: isProduction() ? `/api/trpc` : `http://${getEnv(import.meta.env.VITE_DEV_SERVER_HOST, 'VITE_DEV_SERVER_HOST')}:${SERVER_PORT}/api/trpc`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      return trpc.createClient({
+        links: !isProduction() ? [
+          splitLink({
+            condition(op) {
+              return op.type === "subscription";
             },
+            true: !isProduction() ? wsLink({
+              client: createWSClient({
+                url: `ws://localhost:${SERVER_PORT}/api/trpc?token=${token}`,
+              }),
+            }) : [],
+            false: httpBatchLink,
           }),
-        }),
-      ],
-    });
-  }, [token]);
+        ] : [
+          httpBatchLink
+        ],
+      });
+  });
 
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>

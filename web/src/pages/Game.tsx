@@ -2,6 +2,7 @@ import React, { PropsWithChildren, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Question, trpc } from "../utils/trpc";
 import { pusher } from "../utils/pusher";
+import { useToken } from "../providers/useToken";
 
 const Option = ({
   question,
@@ -48,13 +49,20 @@ const QuestionComponent = ({
 };
 
 const Game = () => {
+  const { token } = useToken()
   const navigate = useNavigate();
 
   const [winner, setWinner] = useState<string>();
 
   const { data: penalty, refetch: refetchPenalty } =
     trpc.game.getPenalty.useQuery(undefined, {
-      enabled: !winner
+      enabled: !winner,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
+      trpc: {
+        abortOnUnmount: true
+      }
     });
   const { data: question, refetch: refetchCurrentQuestion } =
     trpc.game.currentQuestion.useQuery(undefined, {
@@ -65,7 +73,9 @@ const Game = () => {
 
   const penaltyChannel = pusher.subscribe("penalty")
   penaltyChannel.bind("refetch", () => {
-    refetchPenalty()
+    refetchPenalty({
+      throwOnError: true
+    })
   })
 
   const currentQuestionChannel = pusher.subscribe("currentQuestion")

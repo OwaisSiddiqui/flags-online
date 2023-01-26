@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "dev": "nodemon api/index.ts",
+    "dev": "NODE_ENV=development nodemon api/index.ts",
     "build:server": "tsc",
     "start": "node build/api/index.js",
     "seed:dev": "NODE_ENV=development npx mikro-orm seeder:run",

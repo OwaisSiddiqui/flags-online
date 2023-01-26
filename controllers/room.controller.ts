@@ -8,7 +8,7 @@ import * as errors from "../errors"
 export const roomRouter = router({
   getRooms: protectedProcedure.query(async () => {
     const rooms = await DI.roomRepository.findAll({
-      populate: true,
+      populate: ['id', 'name', 'guests.id'],
     });
     const result = [];
     for (const room of rooms) {
@@ -25,7 +25,14 @@ export const roomRouter = router({
     .mutation(async ({ input, ctx }) => {
       const roomName = input.roomName;
       const { userId } = ctx;
-      const user = await getUser({ id: userId })
+      const user = await DI.userRepositroy.findOne({
+        id: userId
+      }, {
+        populate: ['type']
+      })
+      if (!user) {
+        throw errors.USER_NOT_FOUND
+      }
       if (user.type === "default") {
         user.type = "host";
         const room = DI.roomRepository.create({
@@ -45,7 +52,14 @@ export const roomRouter = router({
     }),
   getRoom: protectedProcedure.query(async ({ ctx }) => {
     const { userId } = ctx;
-    const user = await getUser({ id: userId })
+    const user = await DI.userRepositroy.findOne({
+      id: userId
+    }, {
+      populate: ['room.id']
+    })
+    if (!user) {
+      throw errors.USER_NOT_FOUND
+    }
     const room = await DI.roomRepository.findOne(
       {
         id: user.room?.id,
@@ -81,7 +95,14 @@ export const roomRouter = router({
   }),
   leaveRoom: protectedProcedure.mutation(async ({ ctx }) => {
     const { userId } = ctx;
-    const user = await getUser({ id: userId })
+    const user = await DI.userRepositroy.findOne({
+      id: userId
+    }, {
+      populate: ['room.id', 'type', 'id']
+    })
+    if (!user) {
+      throw errors.USER_NOT_FOUND
+    }
     const room = await DI.roomRepository.findOne({
       id: user.room?.id,
     }, {populate: ['host.id', 'opponent.id', 'guests']});
@@ -120,26 +141,32 @@ export const roomRouter = router({
       const room = await DI.roomRepository.findOne({
         id: input.roomId,
       });
-      if (room) {
-        const { userId } = ctx;
-        const user = await getUser({ id: userId })
-        if (!user.room) {
-          user.room = room;
-          if (!room.opponent) {
-            user.type = "opponent";
-            room.opponent = user;
-          } else {
-            user.type = "guest";
-          }
-          await DI.userRepositroy.persistAndFlush(user);
-          await DI.roomRepository.persistAndFlush(room);
-          pusher.trigger("room", "refetch", null)
-          pusher.trigger("rooms", "refetch", null)
-        } else {
-          throw errors.USER_ALREADY_IN_ROOM
-        }
-      } else {
+      if (!room) {
         throw errors.ROOM_NOT_FOUND
+      }
+      const { userId } = ctx;
+    const user = await DI.userRepositroy.findOne({
+      id: userId
+    }, {
+      populate: ['room', 'type']
+    })
+    if (!user) {
+      throw errors.USER_NOT_FOUND
+    }
+      if (!user.room) {
+        user.room = room;
+        if (!room.opponent) {
+          user.type = "opponent";
+          room.opponent = user;
+        } else {
+          user.type = "guest";
+        }
+        await DI.userRepositroy.persistAndFlush(user);
+        await DI.roomRepository.persistAndFlush(room);
+        pusher.trigger("room", "refetch", null)
+        pusher.trigger("rooms", "refetch", null)
+      } else {
+        throw errors.USER_ALREADY_IN_ROOM
       }
     }),
 });

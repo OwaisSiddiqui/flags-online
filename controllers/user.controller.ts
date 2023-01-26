@@ -13,6 +13,8 @@ export const userRouter = router({
     const { userId } = ctx;
     const user = await DI.userRepositroy.findOne({
       id: userId
+    }, {
+      populate: ['id', 'username', 'type', 'room.id', 'room.game.id']
     })
     if (user) {
       return {
@@ -48,6 +50,7 @@ export const userRouter = router({
           type: "default",
           password: hash,
         });
+        await DI.userRepositroy.populate(user, ['id'])
         await DI.userRepositroy.persistAndFlush(user);
         ctx.userId = user.id;
         return generateAccessToken(user.id);

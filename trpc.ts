@@ -1,13 +1,12 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import { DI as OldDI, initDI } from "./database";
 import { inferAsyncReturnType } from "@trpc/server";
-import { authenticateToken } from "./utils";
+import { authenticateToken, getEnv } from "./utils";
 import { RequestContext } from "@mikro-orm/core";
 import { User } from "./entities";
 import { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 import { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import { JwtPayload } from "jsonwebtoken";
-import { EventEmitter } from "events";
 import { isCustomError } from "./errors";
 
 export const createContext = async (
@@ -17,7 +16,7 @@ export const createContext = async (
     try {
       const req = opts.req;
       const urlSearchParamsToken = new URL(
-        `http://localhost:4000${req.url}`
+        `http://${getEnv('DEV_HOST')}:4000${req.url}`
       ).searchParams.get("token");
       const token =
         req.headers.authorization?.split(" ")[1] || urlSearchParamsToken;
@@ -39,7 +38,7 @@ export const createContext = async (
         id: userId,
       },
       {
-        populate: true,
+        populate: ['id'],
       }
     );
   }

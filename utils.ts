@@ -2,6 +2,17 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { DI } from "./database";
 import * as errors from "./errors"
+import { User } from "./entities";
+import { Populate,  } from "@mikro-orm/core";
+import { EntityRepository } from "@mikro-orm/knex";
+
+export const getEnv = (name: string) => {
+  const env = process.env[name]
+  if (!env) {
+      throw new Error(`${name} env is not defined`)
+  }
+  return env;
+}
 
 export function shuffleArray(array: unknown[]) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -11,10 +22,7 @@ export function shuffleArray(array: unknown[]) {
 }
 
 export const getTokenSecret = () => {
-  const tokenSecret = process.env.TOKEN_SECRET;
-  if (!tokenSecret) {
-    throw new Error("TOKEN_SECRET env not defined");
-  }
+  const tokenSecret = getEnv("TOKEN_SECRET")
   return tokenSecret;
 };
 
@@ -60,15 +68,7 @@ export const sleep = (waitTimeInMs: number) =>
     }
   }
 
-  export const getEnv = (name: string) => {
-    const env = process.env[name]
-    if (!env) {
-        throw new Error(`${name} env is not defined`)
-    }
-    return env;
-}
-
   export const isProduction = () => {
-    return process.env.NODE_ENV === "production" || process.env.APP_ENV === "vercel"
+    return getEnv("NODE_ENV") === "production" || getEnv('APP_ENV') === "vercel"
   }
 

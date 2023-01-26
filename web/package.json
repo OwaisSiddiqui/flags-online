@@ -12,10 +12,10 @@
     "react-router-dom": "^6.4.5"
   },
   "scripts": {
-    "dev": "vite",
-    "dev:network": "vite --host",
+    "dev": "NODE_ENV=development vite",
+    "dev:network": "NODE_ENV=development vite --host",
     "build": "vite build && mkdir -p ../public && cp -R dist/. ../public",
-    "preview": "vite preview"
+    "preview": "NODE_ENV=production vite preview"
   },
   "eslintConfig": {
     "extends": [
