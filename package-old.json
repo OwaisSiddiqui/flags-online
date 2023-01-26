@@ -1,0 +1,16 @@
+{
+  "name": "guess-flags-mulitplayer",
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "dev:web": "NODE_ENV=development npm run dev --workspace=web",
+    "build:web": "npm run build --workspace=web",
+    "start:web": "NODE_ENV=production npm run preview --workspace=web",
+    "dev:server": "NODE_ENV=development npm run dev --workspace=server",
+    "build:server": "npm run build --workspace=server",
+    "start:server": "NODE_ENV=production npm run start --workspace=server",
+    "vercel-build": "rm -rf api && mkdir -p api && touch api/index.js && cd web && npm run build && cd ../server && npm run build"
+  }
+}
