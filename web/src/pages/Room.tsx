@@ -2,9 +2,10 @@ import React, { useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { trpc } from "../utils/trpc";
 import { useUser } from "../providers/userContext";
-import { pusher } from "../utils/pusher";
+import { usePusher } from "../providers/pusherContext";
 
 const RoomPage = () => {
+  const { pusher } = usePusher()
   const navigate = useNavigate();
   const {
     isError,
@@ -27,13 +28,13 @@ const RoomPage = () => {
   const leaveRoom = trpc.room.leaveRoom.useMutation();
   const createGame = trpc.game.createGame.useMutation();
 
-  const gameChannel = pusher.subscribe("game")
-  gameChannel.bind("refetch", () => {
+  const gameChannel = pusher?.subscribe("game")
+  gameChannel?.bind("refetch", () => {
     navigate("/game");
   })
 
-  const roomChannel = pusher.subscribe("room")
-  roomChannel.bind("refetch", (data: any) => {
+  const roomChannel = pusher?.subscribe("room")
+  roomChannel?.bind("refetch", (data: any) => {
     if (data?.isLeaving.user.id !== user?.id || data?.isLeaving.user.isHost) {
       refetchRoom({  })
     }

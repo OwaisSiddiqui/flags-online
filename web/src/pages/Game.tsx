@@ -1,8 +1,10 @@
-import React, { PropsWithChildren, useState } from "react";
+import React, { PropsWithChildren, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Question, trpc } from "../utils/trpc";
-import { pusher } from "../utils/pusher";
-import { useToken } from "../providers/useToken";
+import { useToken } from "../providers/tokenContext";
+import { usePusher } from "../providers/pusherContext";
+import { useUser } from "../providers/userContext";
+import { privateChannelName } from "../utils";
 
 const Option = ({
   question,
@@ -49,7 +51,8 @@ const QuestionComponent = ({
 };
 
 const Game = () => {
-  const { token } = useToken()
+  const { user } = useUser()
+  const { pusher } = usePusher()
   const navigate = useNavigate();
 
   const [winner, setWinner] = useState<string>();
@@ -71,22 +74,31 @@ const Game = () => {
       refetchOnWindowFocus: false
     });
 
-  const penaltyChannel = pusher.subscribe("penalty")
-  penaltyChannel.bind("refetch", () => {
-    refetchPenalty({
-      throwOnError: true
+  useEffect(() => {
+    if (!(user && pusher)) {
+      return;
+    }
+    const penaltyChannel = pusher.subscribe(privateChannelName('penalty', user.id))
+    penaltyChannel.bind("refetch", () => {
+      console.log("Refetch!!")
     })
-  })
 
-  const currentQuestionChannel = pusher.subscribe("currentQuestion")
-  currentQuestionChannel.bind("refetch", () => {
-    refetchCurrentQuestion()
-  })
+    const currentQuestionChannel = pusher.subscribe("currentQuestion")
+    currentQuestionChannel.bind("refetch", () => {
+      refetchCurrentQuestion()
+    })
 
-  const endGameChannel = pusher.subscribe("endGame")
-  endGameChannel.bind("refetch", (winner: string) => {
-    setWinner(winner)
-  })
+    const endGameChannel = pusher.subscribe("endGame")
+    endGameChannel.bind("refetch", (winner: string) => {
+      setWinner(winner)
+    })
+
+    return () => {
+      penaltyChannel.unbind_all()
+      currentQuestionChannel.unbind_all()
+      endGameChannel.unbind_all()
+    }
+  }, [user, pusher])
 
   return (
     <div className="flex flex-col p-5 gap-5 w-full items-center justify-center bg-gray-900">

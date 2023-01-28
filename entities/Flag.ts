@@ -1,12 +1,9 @@
 import {
   Entity,
-  EntitySerializer,
-  OneToMany,
   PrimaryKey,
   Property,
 } from "@mikro-orm/core";
 import { v4 } from "uuid";
-import { Question } from "./Question";
 
 @Entity()
 export class Flag {

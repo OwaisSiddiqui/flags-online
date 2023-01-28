@@ -30,3 +30,8 @@ export const FlagSchema = z.object({
 export const QuestionSchema = z.object({
   questionId: z.string(),
 });
+
+export const PusherUserAuthSchema = z.object({
+  socketId: z.string(),
+  channelName: z.string()
+})

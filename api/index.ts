@@ -10,7 +10,7 @@ import cors from "cors";
 import { initDb } from "../db";
 import { userRouter, roomRouter } from "../controllers";
 import { gameRouter } from "../controllers/game.controller";
-import { getEnv, isProduction } from "../utils";
+import { getEnv, isProd } from "../utils";
 
 const app = express();
 const server = http.createServer(app);
@@ -24,7 +24,7 @@ export type AppRouter = typeof appRouter;
 
 const PORT = parseInt(getEnv("PORT"));
 
-if (!isProduction()) {
+if (!isProd()) {
   const wss = new ws.Server({
     server,
   });
@@ -40,7 +40,7 @@ if (!isProduction()) {
   });
 }
 
-app.use(cors({ credentials: true, origin: isProduction() ? undefined : `http://${getEnv('DEV_HOST')}:${getEnv(`DEV_PORT`)}` }));
+app.use(cors({ credentials: true, origin: isProd() ? undefined : `http://${getEnv('DEV_HOST')}:${getEnv(`DEV_PORT`)}` }));
 app.use(
   "/api/trpc",
   createExpressMiddleware({
@@ -51,7 +51,7 @@ app.use(
 
 initDb();
 
-if (!isProduction()) {
+if (!isProd()) {
   server.listen(PORT, "localhost", () => {
     console.log(`HTTP server listening on port ${PORT}`);
   });

@@ -5,7 +5,6 @@ const PUSHER_APP_ID = getEnv("PUSHER_APP_ID")
 const PUSHER_KEY = getEnv("PUSHER_KEY")
 const PUSHER_SECERT = getEnv("PUSHER_SECRET")
 const PUSHER_CLUSTER = getEnv("PUSHER_CLUSTER")
- 
 
 export const pusher = new Pusher({
     appId: PUSHER_APP_ID,

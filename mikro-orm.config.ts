@@ -4,14 +4,17 @@ import { User, Room } from "./entities";
 import { Flag } from "./entities/Flag";
 import { Game } from "./entities/Game";
 import { Question } from "./entities/Question";
-import { getEnv, isProduction } from "./utils";
+import { getEnv, isProd } from "./utils";
 
 let options = {
   entities: [User, Room, Flag, Question, Game],
-  type: "postgresql"
+  type: "postgresql",
+  seeder: {
+    defaultSeeder: "DbSeeder"
+  }
 } as Options<PostgreSqlDriver>
 
-if (isProduction()) {
+if (isProd()) {
   options = {
     ...options,
     dbName: getEnv("AWS_RDS_FLAGS_ONLINE_POSTGRESQL_DB_NAME"),

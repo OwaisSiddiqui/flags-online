@@ -2,10 +2,9 @@ import { DI } from "../db";
 import { Game, User } from "../entities";
 import { FlagSchema, QuestionSchema } from "../schemas";
 import { protectedProcedure, router } from "../trpc";
-import { getUser, sleep } from "../utils";
+import { sleep } from "../utils";
 import * as errors from "../errors"
 import { pusher } from "../pusher";
-import { TRPCError } from "@trpc/server";
 
 const PENALTY_TIME = 3;
 
@@ -16,27 +15,17 @@ const clearGame = (user: User) => {
   }
 }
 
-const countdownPenalty = async (game: Game, user: User) => {
-  if (game.room.host.id === user.id) {
-    game.hostPenalty = PENALTY_TIME;
-  } else if (game.room.opponent?.id === user.id) {
-    game.opponentPenalty = PENALTY_TIME;
-  } else {
-    throw errors.USER_NOT_HOST_OR_OPPONENT
-  }
-  await DI.gameRepository.persistAndFlush(game);
-  pusher.trigger("penalty", "refetch", null)
-  for (let i = PENALTY_TIME; i > 0; i--) {
+const countdownPenalty = async (game: Game, userId: string) => {
+  for (let i = PENALTY_TIME; i >= 0; i--) {
     await sleep(1000);
-    if (game.room.host.id === user.id) {
-      game.hostPenalty -= 1;
-    } else if (game.room.opponent?.id === user.id) {
-      game.opponentPenalty -= 1;
+    if (game.room.host.id === userId) {
+      game.hostPenalty = i;
+    } else if (game.room.opponent?.id === userId) {
+      game.opponentPenalty = i;
     }
     await DI.gameRepository.persistAndFlush(game);
-    pusher.trigger("penalty", "refetch", null)
+    pusher.trigger(`private-penalty-${userId}`, 'refetch', null)
   }
-  pusher.trigger("penalty", "refetch", null)
 };
 
 export const gameRouter = router({
@@ -86,9 +75,9 @@ export const gameRouter = router({
     })
     if (game) {
       await DI.em.populate(game, ["hostPenalty", "opponentPenalty"]);
-      if (game.room.host.id === user.id) {
+      if (game.room.host.id === userId) {
         return game.hostPenalty;
-      } else if (game.room.opponent?.id === user.id) {
+      } else if (game.room.opponent?.id === userId) {
         return game.opponentPenalty;
       } else {
         throw errors.USER_NOT_HOST_OR_OPPONENT
@@ -129,9 +118,9 @@ export const gameRouter = router({
         throw errors.GAME_NOT_FOUND
       }
       let penalty;
-      if (game.room.host.id === user.id) {
+      if (game.room.host.id === userId) {
         penalty = game.hostPenalty;
-      } else if (game.room.opponent?.id === user.id) {
+      } else if (game.room.opponent?.id === userId) {
         penalty = game.opponentPenalty;
       } else {
         throw errors.USER_NOT_HOST_OR_OPPONENT
@@ -139,9 +128,9 @@ export const gameRouter = router({
       let isAnswer = false;
       isAnswer = question.flag.country === input.flagName;
       if (isAnswer && penalty === 0) {
-        if (game.room.host.id === user.id) {
+        if (game.room.host.id === userId) {
           game.hostScore += 1;
-        } else if (game.room.opponent?.id === user.id) {
+        } else if (game.room.opponent?.id === userId) {
           game.opponentScore += 1;
         } else {
           throw errors.USER_NOT_HOST_OR_OPPONENT
@@ -180,21 +169,16 @@ export const gameRouter = router({
           return;
         }
         await DI.gameRepository.persistAndFlush(game);
-        pusher.trigger("currentQuestion", "refetch", null)
-      } else if (penalty === 0) {
+        pusher.trigger("currentQuestion", "refetch", null, undefined)
+      } else {
         await DI.gameRepository.persistAndFlush(game);
-        if (game.room.host.id === user.id) {
-          await countdownPenalty(game, user);
-        } else if (game.room.opponent?.id === user.id) {
-          await countdownPenalty(game, user);
+        if (game.room.host.id === userId) {
+          await countdownPenalty(game, userId);
+        } else if (game.room.opponent?.id === userId) {
+          await countdownPenalty(game, userId);
         } else {
           throw errors.USER_NOT_HOST_OR_OPPONENT
         }
-      } else {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Something's not right..."
-        })
       }
     }),
   currentQuestion: protectedProcedure.query(async ({ ctx }) => {

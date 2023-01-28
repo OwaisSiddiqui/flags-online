@@ -1,10 +1,12 @@
-import { LoginSchema, SignupSchema, UserExistsSchema } from "../schemas";
+import { LoginSchema, PusherUserAuthSchema, SignupSchema, UserExistsSchema } from "../schemas";
 import { DI } from "../db";
 import { protectedProcedure, publicProcedure, router } from "../trpc";
 import bcrypt from "bcrypt";
 import { generateAccessToken } from "../utils";
 import { observable } from "@trpc/server/observable";
 import * as errors from "../errors"
+import { pusher } from "../pusher";
+import { TRPCError } from "@trpc/server";
 
 const saltRounds = 10;
 
@@ -92,4 +94,21 @@ export const userRouter = router({
       };
     });
   }),
+  pusherUserAuth: protectedProcedure.input(PusherUserAuthSchema).mutation(({ input, ctx }) => {
+    console.log('Pusher user auth input', input)
+    const { userId } = ctx
+    const { socketId, channelName } = input
+    const userIdFromChannelName = channelName.slice(channelName.indexOf('userId') + 6)
+    if (!userId) {
+      throw errors.USERNAME_NOT_FOUND
+    }
+    console.log(input, userId, socketId, channelName, userIdFromChannelName)
+    if (userId !== userIdFromChannelName) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED"
+      })
+    }
+    const authResponse = pusher.authorizeChannel(socketId, channelName);
+    return authResponse
+  })
 });

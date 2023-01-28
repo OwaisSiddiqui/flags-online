@@ -68,7 +68,6 @@ export const sleep = (waitTimeInMs: number) =>
     }
   }
 
-  export const isProduction = () => {
-    return getEnv("NODE_ENV") === "production" || getEnv('APP_ENV') === "vercel"
+  export const isProd = () => {
+    return getEnv("NODE_ENV") === "prod" || getEnv('APP_ENV') === "vercel"
   }
-

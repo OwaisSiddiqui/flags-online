@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { GetRoomsOutput, trpc } from "../utils/trpc";
 import { useUser } from "../providers/userContext";
-import { pusher } from "../utils/pusher";
+import { usePusher } from "../providers/pusherContext";
 
 const RoomBox = ({ room }: { room: GetRoomsOutput[number] }) => {
   const navigate = useNavigate();
@@ -34,11 +34,12 @@ const RoomBox = ({ room }: { room: GetRoomsOutput[number] }) => {
 };
 
 const RoomsPage = () => {
+  const { pusher } = usePusher()
   const { isError, isLoading, data, refetch } = trpc.room.getRooms.useQuery();
   const { user } = useUser();
   
-  const roomsChannel = pusher.subscribe("rooms")
-  roomsChannel.bind("refetch", () => {
+  const roomsChannel = pusher?.subscribe("rooms")
+  roomsChannel?.bind("refetch", () => {
     refetch()
   })
 
