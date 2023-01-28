@@ -6,8 +6,6 @@ import { sleep } from "../utils";
 import * as errors from "../errors"
 import { pusher } from "../pusher";
 
-const PENALTY_TIME = 3;
-
 const clearGame = (user: User) => {
   const room = user.room
   if (room) {
@@ -16,19 +14,37 @@ const clearGame = (user: User) => {
 }
 
 const countdownPenalty = async (game: Game, userId: string) => {
-  for (let i = PENALTY_TIME; i >= 0; i--) {
-    await sleep(1000);
+  for (let i = 3; i >= 0; i--) {
     if (game.room.host.id === userId) {
-      game.hostPenalty = i;
+      game.hostPenalty = 0;
     } else if (game.room.opponent?.id === userId) {
-      game.opponentPenalty = i;
+      game.opponentPenalty = 0;
     }
-    await DI.gameRepository.persistAndFlush(game);
-    pusher.trigger(`private-penalty-${userId}`, 'refetch', null)
+    await DI.gameRepository.persistAndFlush(game)
+    pusher.trigger(`private-penalty-userId${userId}`, 'refetch', null)
+    await sleep(1000);
   }
 };
 
 export const gameRouter = router({
+  getGame: protectedProcedure.query(async ({ ctx }) => {
+    const { userId } = ctx;
+    const user = await DI.userRepositroy.findOne({
+      id: userId
+    }, {
+      populate: ['room.game.id']
+    })
+    if (!user) {
+      throw errors.USER_NOT_FOUND
+    }
+    const gameId = user.room?.game?.id
+    if (!gameId) {
+      throw errors.GAME_NOT_FOUND
+    }
+    return {
+      id: gameId
+    }
+  }),
   createGame: protectedProcedure.mutation(async ({ ctx }) => {
     const { userId } = ctx;
     const user = await DI.userRepositroy.findOne({
@@ -50,7 +66,9 @@ export const gameRouter = router({
         }
         const game = await DI.gameRepository.createGameWithQuestions(room);
         await DI.gameRepository.persistAndFlush(game);
-        pusher.trigger("game", "refetch", null)
+        pusher.trigger(`private-game-roomId${roomId}`, "refetch", {game: {
+          id: game.id
+        }})
       } else {
         throw errors.USER_HAS_NO_ROOM
       }
@@ -112,7 +130,7 @@ export const gameRouter = router({
       const game = await DI.gameRepository.findOne({
         id: user.room?.game?.id,
       }, {
-        populate: ['room.opponent.id', 'hostPenalty', 'opponentPenalty', 'room.host.id', 'hostScore','opponentScore', 'room.host.username', 'questionIndex', 'questions.id']
+        populate: ['room.opponent.id', 'hostPenalty', 'opponentPenalty', 'room.host.id', 'hostScore','opponentScore', 'room.host.username', 'questionIndex', 'questions.id', 'id']
       });
       if (!game) {
         throw errors.GAME_NOT_FOUND
@@ -165,11 +183,11 @@ export const gameRouter = router({
             }
           }
           await DI.gameRepository.persistAndFlush(game);
-          pusher.trigger("endGame", "refetch", winner)
+          pusher.trigger(`private-endGame-gameId${game.id}`, "refetch", winner)
           return;
         }
         await DI.gameRepository.persistAndFlush(game);
-        pusher.trigger("currentQuestion", "refetch", null, undefined)
+        pusher.trigger(`private-currentQuestion-gameId${game.id}`, "refetch", null)
       } else {
         await DI.gameRepository.persistAndFlush(game);
         if (game.room.host.id === userId) {

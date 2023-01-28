@@ -14,7 +14,3 @@ export const getEnv = (env: string | undefined, name: string) => {
 export const isProd = () => {
     return import.meta.env.PROD || getEnv(import.meta.env.VITE_APP_ENV, "VITE_APP_ENV") === "vercel"
 }
-
-export const privateChannelName = (name: string, userId: string) => {
-    return `private-${name}-userId${userId}`
-}

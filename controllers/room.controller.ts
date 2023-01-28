@@ -1,7 +1,6 @@
 import { RoomSchema, AddRoomSchema } from "../schemas";
 import { DI } from "../db";
 import { protectedProcedure, router } from "../trpc";
-import { getUser } from "../utils";
 import { pusher } from "../pusher";
 import * as errors from "../errors"
 
@@ -42,10 +41,8 @@ export const roomRouter = router({
         });
         user.room = room;
         await DI.userRepositroy.persistAndFlush(user);
-        if (room) {
-          await DI.roomRepository.persistAndFlush(room);
-        }
-        pusher.trigger("rooms", "refetch", null)
+        await DI.roomRepository.persistAndFlush(room);
+        pusher.trigger(`private-rooms`, "refetch", null)
       } else {
         throw errors.USER_NOT_DEFAULT
       }
@@ -105,7 +102,7 @@ export const roomRouter = router({
     }
     const room = await DI.roomRepository.findOne({
       id: user.room?.id,
-    }, {populate: ['host.id', 'opponent.id', 'guests']});
+    }, {populate: ['host.id', 'opponent.id', 'guests', 'id']});
     if (!room) {
       throw errors.USER_HAS_NO_ROOM
     }
@@ -132,14 +129,16 @@ export const roomRouter = router({
     user.type = "default";
     user.room = undefined
     await DI.userRepositroy.persistAndFlush(user);
-    pusher.trigger("room", "refetch", { isLeaving: { user: { id: user.id, isHost: userType === "host" }}})
-    pusher.trigger("rooms", "refetch", null)
+    pusher.trigger(`private-room-roomId${room.id}`, "refetch", { isLeaving: { user: { id: user.id, isHost: userType === "host" }}})
+    pusher.trigger(`private-rooms`, "refetch", null)
   }),
   joinRoom: protectedProcedure
     .input(RoomSchema)
     .mutation(async ({ input, ctx }) => {
       const room = await DI.roomRepository.findOne({
         id: input.roomId,
+      }, {
+        populate: ['id']
       });
       if (!room) {
         throw errors.ROOM_NOT_FOUND
@@ -163,8 +162,8 @@ export const roomRouter = router({
         }
         await DI.userRepositroy.persistAndFlush(user);
         await DI.roomRepository.persistAndFlush(room);
-        pusher.trigger("room", "refetch", null)
-        pusher.trigger("rooms", "refetch", null)
+        pusher.trigger(`private-room-roomId${room.id}`, "refetch", null)
+        pusher.trigger(`private-rooms`, "refetch", null)
       } else {
         throw errors.USER_ALREADY_IN_ROOM
       }

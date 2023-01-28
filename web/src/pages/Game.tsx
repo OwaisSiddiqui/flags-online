@@ -1,10 +1,8 @@
-import React, { PropsWithChildren, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { PropsWithChildren, useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Question, trpc } from "../utils/trpc";
-import { useToken } from "../providers/tokenContext";
 import { usePusher } from "../providers/pusherContext";
 import { useUser } from "../providers/userContext";
-import { privateChannelName } from "../utils";
 
 const Option = ({
   question,
@@ -57,6 +55,8 @@ const Game = () => {
 
   const [winner, setWinner] = useState<string>();
 
+  const { data: game } = trpc.game.getGame.useQuery()
+
   const { data: penalty, refetch: refetchPenalty } =
     trpc.game.getPenalty.useQuery(undefined, {
       enabled: !winner,
@@ -75,20 +75,22 @@ const Game = () => {
     });
 
   useEffect(() => {
-    if (!(user && pusher)) {
+    if (!(user && pusher && game)) {
       return;
     }
-    const penaltyChannel = pusher.subscribe(privateChannelName('penalty', user.id))
+
+    const penaltyChannel = pusher.subscribe(`private-penalty`)
     penaltyChannel.bind("refetch", () => {
-      console.log("Refetch!!")
+      console.log("Refetch!")
+      refetchPenalty()
     })
 
-    const currentQuestionChannel = pusher.subscribe("currentQuestion")
+    const currentQuestionChannel = pusher.subscribe(`private-currentQuestion-gameId${game.id}`)
     currentQuestionChannel.bind("refetch", () => {
       refetchCurrentQuestion()
     })
 
-    const endGameChannel = pusher.subscribe("endGame")
+    const endGameChannel = pusher.subscribe(`private-endGame-gameId${game.id}`)
     endGameChannel.bind("refetch", (winner: string) => {
       setWinner(winner)
     })
@@ -98,7 +100,7 @@ const Game = () => {
       currentQuestionChannel.unbind_all()
       endGameChannel.unbind_all()
     }
-  }, [user, pusher])
+  }, [user, pusher, game])
 
   return (
     <div className="flex flex-col p-5 gap-5 w-full items-center justify-center bg-gray-900">

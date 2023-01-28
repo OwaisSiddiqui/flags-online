@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { GetRoomsOutput, trpc } from "../utils/trpc";
@@ -38,10 +38,19 @@ const RoomsPage = () => {
   const { isError, isLoading, data, refetch } = trpc.room.getRooms.useQuery();
   const { user } = useUser();
   
-  const roomsChannel = pusher?.subscribe("rooms")
-  roomsChannel?.bind("refetch", () => {
-    refetch()
-  })
+  useEffect(() => {
+    if (!(user && pusher)) {
+      return;
+    }
+    const roomsChannel = pusher.subscribe(`private-rooms`)
+    roomsChannel.bind("refetch", () => {
+      refetch()
+    })
+
+    return () => {
+      roomsChannel.unbind_all()
+    }
+  }, [user, pusher])
 
   return (
     <div className="flex flex-1 bg-white z-2 min-w-0">

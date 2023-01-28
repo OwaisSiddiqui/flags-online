@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { trpc } from "../utils/trpc";
 import { useUser } from "../providers/userContext";
@@ -28,17 +28,32 @@ const RoomPage = () => {
   const leaveRoom = trpc.room.leaveRoom.useMutation();
   const createGame = trpc.game.createGame.useMutation();
 
-  const gameChannel = pusher?.subscribe("game")
-  gameChannel?.bind("refetch", () => {
-    navigate("/game");
-  })
-
-  const roomChannel = pusher?.subscribe("room")
-  roomChannel?.bind("refetch", (data: any) => {
-    if (data?.isLeaving.user.id !== user?.id || data?.isLeaving.user.isHost) {
-      refetchRoom({  })
+  useEffect(() => {
+    if (!(user && pusher && room)) {
+      return;
     }
-  })
+
+    const gameChannel = pusher.subscribe(`private-game-roomId${room.id}`)
+    gameChannel.bind("refetch", (data: any) => {
+      const gameId = data.game.id
+      if (!gameId) {
+        return;
+      }
+      navigate(`/game`);
+    })
+
+    const roomChannel = pusher.subscribe(`private-room-roomId${room.id}`)
+    roomChannel.bind("refetch", (data: any) => {
+      if (data?.isLeaving.user.id !== user?.id || data?.isLeaving.user.isHost) {
+        refetchRoom()
+      }
+    })
+
+    return () => {
+      gameChannel.unbind_all()
+      roomChannel.unbind_all()
+    }
+  }, [user, pusher, room])
 
   if (isError) {
     return <span>Error!</span>;
@@ -75,7 +90,7 @@ const RoomPage = () => {
           disabled={!isOpponent}
           className="bg-blue-500 text-white font-bold py-2 px-4 rounded disabled:pointer-events-none disabled:opacity-40"
           onClick={async () => {
-            createGame.mutate();
+            createGame.mutate()
           }}
         >
           {isOpponent ? "Start game" : "Waiting for an opponent..."}

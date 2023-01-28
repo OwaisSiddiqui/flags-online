@@ -29,6 +29,9 @@ const UserProvider = ({
   const utils = trpc.useContext()
 
   const { refetch } = trpc.user.getUser.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
     enabled: !!token,
     onError(error) {
       if (error.data?.code === "UNAUTHORIZED") {
@@ -51,7 +54,7 @@ const UserProvider = ({
   useEffect(() => {
     if (user) {
       if (user.room.game.id) {
-        navigate("/game");
+        navigate(`/game`);
       } else if (user.room.id) {
         navigate("/room");
       } else {

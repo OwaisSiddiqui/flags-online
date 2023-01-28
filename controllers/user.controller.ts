@@ -94,21 +94,45 @@ export const userRouter = router({
       };
     });
   }),
-  pusherUserAuth: protectedProcedure.input(PusherUserAuthSchema).mutation(({ input, ctx }) => {
-    console.log('Pusher user auth input', input)
+  pusherUserAuth: protectedProcedure.input(PusherUserAuthSchema).mutation(async ({ input, ctx }) => {
     const { userId } = ctx
+    const user = await DI.userRepositroy.findOne({
+      id: userId
+    }, {
+      populate: ['id', 'room.id', 'room.game.id']
+    })
     const { socketId, channelName } = input
-    const userIdFromChannelName = channelName.slice(channelName.indexOf('userId') + 6)
-    if (!userId) {
-      throw errors.USERNAME_NOT_FOUND
+    if (channelName.includes("userId")) {
+      const userIdFromChannelName = channelName.slice(channelName.indexOf('userId') + 6)
+      console.log(input, user, userIdFromChannelName, channelName)
+      if (userId !== userIdFromChannelName) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED"
+        })
+      }
+      const authResponse = pusher.authorizeChannel(socketId, channelName);
+      return authResponse
+    } else if (channelName.includes("roomId")) {
+      const roomIdFromChannelName = channelName.slice(channelName.indexOf('roomId') + 6)
+      if (user?.room?.id !== roomIdFromChannelName) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED"
+        })
+      }
+      const authResponse = pusher.authorizeChannel(socketId, channelName);
+      return authResponse
+    } else if (channelName.includes("gameId")) {
+      const gameIdFromChannelName = channelName.slice(channelName.indexOf('gameId') + 6)
+      if (user?.room?.game?.id !== gameIdFromChannelName) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED"
+        })
+      }
+      const authResponse = pusher.authorizeChannel(socketId, channelName);
+      return authResponse
+    } else {
+      const authResponse = pusher.authorizeChannel(socketId, channelName);
+      return authResponse
     }
-    console.log(input, userId, socketId, channelName, userIdFromChannelName)
-    if (userId !== userIdFromChannelName) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED"
-      })
-    }
-    const authResponse = pusher.authorizeChannel(socketId, channelName);
-    return authResponse
   })
 });
