@@ -79,7 +79,7 @@ const Game = () => {
       return;
     }
 
-    const penaltyChannel = pusher.subscribe(`private-penalty`)
+    const penaltyChannel = pusher.subscribe(`private-penalty-userId${user.id}`)
     penaltyChannel.bind("refetch", () => {
       console.log("Refetch!")
       refetchPenalty()
