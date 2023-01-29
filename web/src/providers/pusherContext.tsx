@@ -74,7 +74,8 @@ const PusherProvidier = ({ children }: PropsWithChildren<{}>) => {
   useEffect(() => {
     if (pusher) {
       pusher.connection.bind("error", (error: any) => {
-        if (error.error.data.code === 4004) {
+        console.log('Pusher error:', error)
+        if (error.data.code === 4004) {
           console.log("Over limit!");
         }
       });

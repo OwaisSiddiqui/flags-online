@@ -47,7 +47,7 @@ export const roomRouter = router({
       user.room = room;
       await DI.userRepositroy.persistAndFlush(user);
       await DI.roomRepository.persistAndFlush(room);
-      pusher.trigger(`private-rooms`, "refetch", null);
+      await pusher.trigger(`private-rooms`, "refetch", null);
     }),
   getRoom: protectedProcedure.query(async ({ ctx }) => {
     const { userId } = ctx;
@@ -135,8 +135,8 @@ export const roomRouter = router({
         }
         await DI.userRepositroy.persistAndFlush(user);
         await DI.roomRepository.persistAndFlush(room);
-        pusher.trigger(`private-room-roomId${room.id}`, "refetch", null);
-        pusher.trigger(`private-rooms`, "refetch", null);
+        await pusher.trigger(`private-room-roomId${room.id}`, "refetch", null);
+        await pusher.trigger(`private-rooms`, "refetch", null);
     }),
   leaveRoom: protectedProcedure.mutation(async ({ ctx }) => {
     const { userId } = ctx;
@@ -186,10 +186,10 @@ export const roomRouter = router({
     user.type = "default";
     user.room = undefined;
     await DI.userRepositroy.persistAndFlush(user);
-    pusher.trigger(`private-room-roomId${room.id}`, "refetch", {
+    await pusher.trigger(`private-room-roomId${room.id}`, "refetch", {
       isLeaving: { user: { id: user.id, isHost: userType === "host" } },
     });
-    pusher.trigger(`private-rooms`, "refetch", null);
+    await pusher.trigger(`private-rooms`, "refetch", null);
   })
 });
 

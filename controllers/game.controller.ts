@@ -21,7 +21,7 @@ const countdownPenalty = async (game: Game, userId: string) => {
       game.opponentPenalty = i;
     }
     await DI.gameRepository.persistAndFlush(game);
-    pusher.trigger(`private-penalty-userId${userId}`, "refetch", null);
+    await pusher.trigger(`private-penalty-userId${userId}`, "refetch", null);
     await sleep(1000);
   }
 };
@@ -76,7 +76,7 @@ export const gameRouter = router({
     }
     const game = await DI.gameRepository.createGameWithQuestions(room);
     await DI.gameRepository.persistAndFlush(game);
-    pusher.trigger(`private-game-roomId${roomId}`, "refetch", {
+    await pusher.trigger(`private-game-roomId${roomId}`, "refetch", {
       game: {
         id: game.id,
       },
@@ -176,9 +176,7 @@ export const gameRouter = router({
       } else {
         throw errors.USER_NOT_HOST_OR_OPPONENT;
       }
-      let isAnswer = false;
-      isAnswer = question.flag.country === input.flagName;
-      if (isAnswer && penalty === 0) {
+      if (question.flag.country === input.flagName && penalty === 0) {
         if (game.room.host.id === userId) {
           game.hostScore += 1;
         } else if (game.room.opponent?.id === userId) {
@@ -223,15 +221,16 @@ export const gameRouter = router({
             }
           }
           await DI.gameRepository.persistAndFlush(game);
-          pusher.trigger(`private-endGame-gameId${game.id}`, "refetch", winner);
+          await pusher.trigger(`private-endGame-gameId${game.id}`, "refetch", winner);
           return;
         }
         await DI.gameRepository.persistAndFlush(game);
-        pusher.trigger(
+        await pusher.trigger(
           `private-currentQuestion-gameId${game.id}`,
           "refetch",
           null
         );
+        return;
       } else if (penalty === 0) {
         await DI.gameRepository.persistAndFlush(game);
         if (game.room.host.id === userId) {
@@ -241,6 +240,7 @@ export const gameRouter = router({
         } else {
           throw errors.USER_NOT_HOST_OR_OPPONENT;
         }
+        return true;
       } else {
         throw errors.PENALTY_IS_NOT_ZERO
       }
