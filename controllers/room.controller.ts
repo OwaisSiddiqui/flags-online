@@ -35,7 +35,9 @@ export const roomRouter = router({
       if (!user) {
         throw errors.USER_NOT_FOUND;
       }
-      if (user.type === "default") {
+      if (!(user.type === "default")) {
+        throw errors.USER_NOT_DEFAULT;
+      }
         user.type = "host";
         const room = DI.roomRepository.create({
           guests: [],
@@ -46,9 +48,6 @@ export const roomRouter = router({
         await DI.userRepositroy.persistAndFlush(user);
         await DI.roomRepository.persistAndFlush(room);
         pusher.trigger(`private-rooms`, "refetch", null);
-      } else {
-        throw errors.USER_NOT_DEFAULT;
-      }
     }),
   getRoom: protectedProcedure.query(async ({ ctx }) => {
     const { userId } = ctx;
@@ -71,7 +70,9 @@ export const roomRouter = router({
         populate: ["guests", "host", "opponent"],
       }
     );
-    if (room) {
+    if (!room) {
+      throw errors.ROOM_NOT_FOUND;
+    }
       const guests = [];
       for (const guest of room.guests) {
         guests.push({
@@ -92,9 +93,6 @@ export const roomRouter = router({
         },
         guests: guests,
       };
-    } else {
-      throw errors.ROOM_NOT_FOUND;
-    }
   }),
   leaveRoom: protectedProcedure.mutation(async ({ ctx }) => {
     const { userId } = ctx;
@@ -108,6 +106,9 @@ export const roomRouter = router({
     );
     if (!user) {
       throw errors.USER_NOT_FOUND;
+    }
+    if (user.type === "default") {
+      throw errors.USER_CANNOT_BE_DEFAULT
     }
     const room = await DI.roomRepository.findOne(
       {
@@ -172,7 +173,9 @@ export const roomRouter = router({
       if (!user) {
         throw errors.USER_NOT_FOUND;
       }
-      if (!user.room) {
+      if (user.room) {
+        throw errors.USER_ALREADY_IN_ROOM;
+      }
         user.room = room;
         if (!room.opponent) {
           user.type = "opponent";
@@ -184,9 +187,6 @@ export const roomRouter = router({
         await DI.roomRepository.persistAndFlush(room);
         pusher.trigger(`private-room-roomId${room.id}`, "refetch", null);
         pusher.trigger(`private-rooms`, "refetch", null);
-      } else {
-        throw errors.USER_ALREADY_IN_ROOM;
-      }
     }),
 });
 `                 `;

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { trpc } from "../utils/trpc";
 import { SubmitHandler, useForm } from "react-hook-form";
 
-interface IFormInput {
+type IFormInput = {
   roomName: string;
 }
 

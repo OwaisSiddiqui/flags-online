@@ -58,7 +58,7 @@ const t = initTRPC.context<Context>().create({
       ...shape,
       data: {
         ...shape.data,
-        ...(isCustomError(error.cause) ? error.cause.serialize() : {}),
+        ...isCustomError(error.cause) ? error.cause.serialize() : {}
       },
     };
   },

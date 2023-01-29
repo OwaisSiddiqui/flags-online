@@ -2,18 +2,15 @@ import {
   LoginSchema,
   PusherUserAuthSchema,
   SignupSchema,
-  UserExistsSchema,
+  UserExistsSchema
 } from "../schemas";
 import { DI } from "../db";
 import { protectedProcedure, publicProcedure, router } from "../trpc";
 import bcrypt from "bcrypt";
-import { generateAccessToken } from "../utils";
-import { observable } from "@trpc/server/observable";
+import { generateAccessToken, getEnv } from "../utils";
 import * as errors from "../errors";
 import { pusher } from "../pusher";
 import { TRPCError } from "@trpc/server";
-
-const saltRounds = 10;
 
 export const userRouter = router({
   getUser: protectedProcedure.query(async ({ ctx }) => {
@@ -26,7 +23,9 @@ export const userRouter = router({
         populate: ["id", "username", "type", "room.id", "room.game.id"],
       }
     );
-    if (user) {
+    if (!user) {
+      throw errors.USER_NOT_FOUND;
+    }
       return {
         id: user.id,
         username: user.username,
@@ -38,23 +37,29 @@ export const userRouter = router({
           },
         },
       };
-    } else {
-      throw errors.USERNAME_NOT_FOUND;
-    }
   }),
+  isUserExist: publicProcedure
+    .input(UserExistsSchema)
+    .mutation(async ({ input }) => {
+      return !!(await DI.userRepositroy.findOne({
+        username: input.username,
+      }));
+    }),
   signup: publicProcedure
     .input(SignupSchema)
     .mutation(async ({ input, ctx }) => {
       const isUserExist = await DI.userRepositroy.findOne({
         username: input.username,
       });
-      if (!isUserExist) {
+      if (isUserExist) {
+        throw errors.USERNAME_ALREADY_EXISTS;
+      }
         const password = input.password;
         const repeatPassword = input.repeatPassword;
         if (!(password === repeatPassword)) {
           throw errors.PASSWORD_AND_REPEAT_PASSWORD_NOT_SAME;
         }
-        const hash = await bcrypt.hash(password, saltRounds);
+        const hash = await bcrypt.hash(password, parseInt(getEnv("SALT_ROUNDS")));
         const user = DI.userRepositroy.create({
           username: input.username,
           type: "default",
@@ -64,45 +69,23 @@ export const userRouter = router({
         await DI.userRepositroy.persistAndFlush(user);
         ctx.userId = user.id;
         return generateAccessToken(user.id);
-      } else {
-        throw errors.USERNAME_ALREADY_EXISTS;
-      }
     }),
   login: publicProcedure.input(LoginSchema).mutation(async ({ input, ctx }) => {
     const user = await DI.userRepositroy.findOne({
       username: input.username,
     });
-    if (user) {
+    if (!user) {
+      throw errors.USERNAME_NOT_FOUND;
+    }
       const isCorrectPassword = await bcrypt.compare(
         input.password,
         user.password
       );
-      if (isCorrectPassword) {
-        ctx.userId = user.id;
-        return generateAccessToken(user.id);
-      } else {
+      if (!isCorrectPassword) {
         throw errors.INCORRECT_PASSWORD;
       }
-    } else {
-      throw errors.USERNAME_NOT_FOUND;
-    }
-  }),
-  isUserExist: publicProcedure
-    .input(UserExistsSchema)
-    .mutation(async ({ input }) => {
-      return !!(await DI.userRepositroy.findOne({
-        username: input.username,
-      }));
-    }),
-  randomNumber: publicProcedure.subscription(() => {
-    return observable<{ randomNumber: number }>((emit) => {
-      const timer = setInterval(() => {
-        emit.next({ randomNumber: Math.random() });
-      }, 1000);
-      return () => {
-        clearInterval(timer);
-      };
-    });
+        ctx.userId = user.id;
+        return generateAccessToken(user.id);
   }),
   pusherUserAuth: protectedProcedure
     .input(PusherUserAuthSchema)
@@ -121,7 +104,6 @@ export const userRouter = router({
         const userIdFromChannelName = channelName.slice(
           channelName.indexOf("userId") + 6
         );
-        console.log(input, user, userIdFromChannelName, channelName);
         if (userId !== userIdFromChannelName) {
           throw new TRPCError({
             code: "UNAUTHORIZED",

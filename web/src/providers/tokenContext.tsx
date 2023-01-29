@@ -22,7 +22,7 @@ const TokenProvider = ({
     if (tokenFromStorage) {
       setToken(tokenFromStorage);
     }
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     if (token) {

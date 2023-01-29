@@ -5,12 +5,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useUser } from "../providers/userContext";
 
-interface LoginFormInput {
+type LoginFormInput = {
   username: string;
   password: string;
 }
 
-interface SignupFormInput {
+type SignupFormInput = {
   username: string;
   password: string;
   repeatPassword: string;

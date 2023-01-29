@@ -1,5 +1,5 @@
-import React, { PropsWithChildren, useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import React, { PropsWithChildren, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Question, trpc } from "../utils/trpc";
 import { usePusher } from "../providers/pusherContext";
 import { useUser } from "../providers/userContext";
@@ -81,7 +81,6 @@ const Game = () => {
 
     const penaltyChannel = pusher.subscribe(`private-penalty-userId${user.id}`);
     penaltyChannel.bind("refetch", () => {
-      console.log("Refetch!");
       refetchPenalty();
     });
 

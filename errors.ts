@@ -19,7 +19,8 @@ type CustomErrorTypes =
   | "USER_ALREADY_IN_ROOM"
   | "USER_NOT_HOST_OR_OPPONENT"
   | "USER_HAS_NO_ROOM"
-  | "QUESTION_NOT_FOUND";
+  | "QUESTION_NOT_FOUND"
+  | "USER_IS_DEFAULT";
 
 class CustomError extends Error {
   type: CustomErrorTypes;
@@ -103,13 +104,11 @@ export const QUESTION_NOT_FOUND = new CustomError({
   type: "QUESTION_NOT_FOUND",
 });
 
-const customErrors = [
-  USERNAME_NOT_FOUND,
-  USERNAME_ALREADY_EXISTS,
-  PASSWORD_AND_REPEAT_PASSWORD_NOT_SAME,
-  INCORRECT_PASSWORD,
-];
+export const USER_CANNOT_BE_DEFAULT = new CustomError({
+  message: "User is default and should not be",
+  type: "QUESTION_NOT_FOUND",
+});
 
 export const isCustomError = (error: unknown): error is CustomError => {
-  return customErrors.some(() => error instanceof CustomError);
-};
+  return error instanceof CustomError
+}

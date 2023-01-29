@@ -61,28 +61,26 @@ export const gameRouter = router({
     if (!user) {
       throw errors.USER_NOT_FOUND;
     }
-    if (user.type === "host") {
-      const roomId = user.room?.id;
-      if (roomId) {
-        const room = await DI.roomRepository.findOne({
-          id: roomId,
-        });
-        if (!room) {
-          throw errors.ROOM_NOT_FOUND;
-        }
-        const game = await DI.gameRepository.createGameWithQuestions(room);
-        await DI.gameRepository.persistAndFlush(game);
-        pusher.trigger(`private-game-roomId${roomId}`, "refetch", {
-          game: {
-            id: game.id,
-          },
-        });
-      } else {
-        throw errors.USER_HAS_NO_ROOM;
-      }
-    } else {
+    if (!(user.type === "host")) {
       throw errors.USER_NOT_HOST;
     }
+    const roomId = user.room?.id;
+    if (!roomId) {
+      throw errors.USER_HAS_NO_ROOM;
+    }
+    const room = await DI.roomRepository.findOne({
+      id: roomId,
+    });
+    if (!room) {
+      throw errors.ROOM_NOT_FOUND;
+    }
+    const game = await DI.gameRepository.createGameWithQuestions(room);
+    await DI.gameRepository.persistAndFlush(game);
+    pusher.trigger(`private-game-roomId${roomId}`, "refetch", {
+      game: {
+        id: game.id,
+      },
+    });
   }),
   getPenalty: protectedProcedure.query(async ({ ctx }) => {
     const { userId } = ctx;
@@ -110,7 +108,9 @@ export const gameRouter = router({
         ],
       }
     );
-    if (game) {
+    if (!game) {
+      throw errors.GAME_NOT_FOUND;
+    }
       await DI.em.populate(game, ["hostPenalty", "opponentPenalty"]);
       if (game.room.host.id === userId) {
         return game.hostPenalty;
@@ -119,9 +119,6 @@ export const gameRouter = router({
       } else {
         throw errors.USER_NOT_HOST_OR_OPPONENT;
       }
-    } else {
-      throw errors.GAME_NOT_FOUND;
-    }
   }),
   handleAnswer: protectedProcedure
     .input(QuestionSchema.merge(FlagSchema))
@@ -267,7 +264,9 @@ export const gameRouter = router({
         populate: ["questions"],
       }
     );
-    if (game) {
+    if (!game) {
+      throw errors.GAME_NOT_FOUND;
+    }
       const question = game.questions[game.questionIndex];
       await DI.em.populate(question, ["flag.url", "id", "options"]);
       const options = [];
@@ -284,8 +283,5 @@ export const gameRouter = router({
         },
         options: options,
       };
-    } else {
-      throw errors.GAME_NOT_FOUND;
-    }
   }),
 });

@@ -8,7 +8,6 @@ import {
 } from "react";
 import Pusher from "pusher-js";
 import { getEnv, isProd } from "../utils";
-import { useUser } from "./userContext";
 import { trpc } from "../utils/trpc";
 
 const PUSHER_APP_KEY = getEnv(
@@ -29,7 +28,6 @@ const PusherContext = createContext<
 >(undefined);
 
 const PusherProvidier = ({ children }: PropsWithChildren<{}>) => {
-  const { user } = useUser();
   const [pusher, setPusher] = useState<Pusher>();
   const pusherId = useMemo(() => {
     if (pusher) {
@@ -82,12 +80,6 @@ const PusherProvidier = ({ children }: PropsWithChildren<{}>) => {
       });
     }
   }, [pusher]);
-
-  // useEffect(() => {
-  //     if (user && pusher) {
-  //         pusher.signin()
-  //     }
-  // }, [user, pusher])
 
   return (
     <PusherContext.Provider value={{ pusherId, pusher }}>
