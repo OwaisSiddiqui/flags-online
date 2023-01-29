@@ -1,3 +1,3 @@
 # Flags Online
-Compete against others in guessing world flags
 
+Compete against others in guessing world flags

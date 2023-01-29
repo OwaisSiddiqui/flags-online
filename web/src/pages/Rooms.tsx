@@ -34,23 +34,23 @@ const RoomBox = ({ room }: { room: GetRoomsOutput[number] }) => {
 };
 
 const RoomsPage = () => {
-  const { pusher } = usePusher()
+  const { pusher } = usePusher();
   const { isError, isLoading, data, refetch } = trpc.room.getRooms.useQuery();
   const { user } = useUser();
-  
+
   useEffect(() => {
     if (!(user && pusher)) {
       return;
     }
-    const roomsChannel = pusher.subscribe(`private-rooms`)
+    const roomsChannel = pusher.subscribe(`private-rooms`);
     roomsChannel.bind("refetch", () => {
-      refetch()
-    })
+      refetch();
+    });
 
     return () => {
-      roomsChannel.unbind_all()
-    }
-  }, [user, pusher])
+      roomsChannel.unbind_all();
+    };
+  }, [user, pusher]);
 
   return (
     <div className="flex flex-1 bg-white z-2 min-w-0">

@@ -10,4 +10,4 @@ export type GetRoomsOutput = RouterOutput["room"]["getRooms"];
 
 export type User = RouterOutput["user"]["getUser"];
 
-export type Question = RouterOutput["game"]["currentQuestion"]
+export type Question = RouterOutput["game"]["currentQuestion"];

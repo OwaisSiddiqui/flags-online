@@ -16,7 +16,7 @@ export const createContext = async (
     try {
       const req = opts.req;
       const urlSearchParamsToken = new URL(
-        `http://${getEnv('DEV_HOST')}:4000${req.url}`
+        `http://${getEnv("DEV_HOST")}:4000${req.url}`
       ).searchParams.get("token");
       const token =
         req.headers.authorization?.split(" ")[1] || urlSearchParamsToken;
@@ -38,7 +38,7 @@ export const createContext = async (
         id: userId,
       },
       {
-        populate: ['id'],
+        populate: ["id"],
       }
     );
   }
@@ -58,10 +58,10 @@ const t = initTRPC.context<Context>().create({
       ...shape,
       data: {
         ...shape.data,
-        ...isCustomError(error.cause) ? error.cause.serialize() : {},
+        ...(isCustomError(error.cause) ? error.cause.serialize() : {}),
       },
     };
-  }
+  },
 });
 
 export const mikroORMMiddleware = t.middleware(async ({ next, ctx }) => {

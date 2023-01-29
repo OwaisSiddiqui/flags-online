@@ -7,8 +7,8 @@ export const SignupSchema = z.object({
 });
 
 export const UserExistsSchema = z.object({
-  username: z.string()
-})
+  username: z.string(),
+});
 
 export const LoginSchema = z.object({
   username: z.string(),
@@ -33,5 +33,5 @@ export const QuestionSchema = z.object({
 
 export const PusherUserAuthSchema = z.object({
   socketId: z.string(),
-  channelName: z.string()
-})
+  channelName: z.string(),
+});

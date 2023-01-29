@@ -10,9 +10,9 @@ let options = {
   entities: [User, Room, Flag, Question, Game],
   type: "postgresql",
   seeder: {
-    defaultSeeder: "DbSeeder"
-  }
-} as Options<PostgreSqlDriver>
+    defaultSeeder: "DbSeeder",
+  },
+} as Options<PostgreSqlDriver>;
 
 if (isProd()) {
   options = {
@@ -21,10 +21,10 @@ if (isProd()) {
     host: getEnv("SUPABASE_FLAGS_ONLINE_POSTGRESQL_HOSTNAME"),
     port: parseInt(getEnv("SUPABASE_FLAGS_ONLINE_POSTGRESQL_PORT")),
     user: getEnv("SUPABASE_FLAGS_ONLINE_POSTGRESQL_USERNAME"),
-    password: getEnv("SUPABASE_FLAGS_ONLINE_POSTGRESQL_PASSWORD")
-  }
+    password: getEnv("SUPABASE_FLAGS_ONLINE_POSTGRESQL_PASSWORD"),
+  };
 } else {
-  options = {...options, dbName: getEnv("PGDB"),}
+  options = { ...options, dbName: getEnv("PGDB") };
 }
 
-export default options
+export default options;

@@ -1,18 +1,18 @@
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { DI } from "./db";
-import * as errors from "./errors"
+import * as errors from "./errors";
 import { User } from "./entities";
-import { Populate,  } from "@mikro-orm/core";
+import { Populate } from "@mikro-orm/core";
 import { EntityRepository } from "@mikro-orm/knex";
 
 export const getEnv = (name: string) => {
-  const env = process.env[name]
+  const env = process.env[name];
   if (!env) {
-      throw new Error(`${name} env is not defined`)
+    throw new Error(`${name} env is not defined`);
   }
   return env;
-}
+};
 
 export function shuffleArray(array: unknown[]) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -22,7 +22,7 @@ export function shuffleArray(array: unknown[]) {
 }
 
 export const getTokenSecret = () => {
-  const tokenSecret = getEnv("TOKEN_SECRET")
+  const tokenSecret = getEnv("TOKEN_SECRET");
   return tokenSecret;
 };
 
@@ -46,28 +46,28 @@ export const generateTokenSecret = () => {
 export const sleep = (waitTimeInMs: number) =>
   new Promise((resolve) => setTimeout(resolve, waitTimeInMs));
 
-  export const getUser = async (data: { id: string } | { username: string }) => {
-    if ('id' in data) {
-      const user = await DI.userRepositroy.findOne({
-        id: data.id
-      })
+export const getUser = async (data: { id: string } | { username: string }) => {
+  if ("id" in data) {
+    const user = await DI.userRepositroy.findOne({
+      id: data.id,
+    });
 
-      if (!user) {
-        throw errors.USER_NOT_FOUND
-      }
-      return user
-    } else {
-      const user = await DI.userRepositroy.findOne({
-        username: data.username
-      })
-
-      if (!user) {
-        throw errors.USERNAME_NOT_FOUND
-      }
-      return user
+    if (!user) {
+      throw errors.USER_NOT_FOUND;
     }
-  }
+    return user;
+  } else {
+    const user = await DI.userRepositroy.findOne({
+      username: data.username,
+    });
 
-  export const isProd = () => {
-    return getEnv("NODE_ENV") === "prod" || getEnv('APP_ENV') === "vercel"
+    if (!user) {
+      throw errors.USERNAME_NOT_FOUND;
+    }
+    return user;
   }
+};
+
+export const isProd = () => {
+  return getEnv("NODE_ENV") === "prod" || getEnv("APP_ENV") === "vercel";
+};

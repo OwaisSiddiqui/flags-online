@@ -5,7 +5,7 @@ import { useUser } from "../providers/userContext";
 import { usePusher } from "../providers/pusherContext";
 
 const RoomPage = () => {
-  const { pusher } = usePusher()
+  const { pusher } = usePusher();
   const navigate = useNavigate();
   const {
     isError,
@@ -15,13 +15,13 @@ const RoomPage = () => {
   } = trpc.room.getRoom.useQuery(undefined, {
     retry: 0,
     onError(error) {
-        if (error.data?.type === "ROOM_NOT_FOUND") {
-          navigate("/home")
-        }
+      if (error.data?.type === "ROOM_NOT_FOUND") {
+        navigate("/home");
+      }
     },
   });
   const isOpponent = useMemo(() => {
-    return room?.opponent?.id
+    return room?.opponent?.id;
   }, [room]);
   const { user } = useUser();
 
@@ -33,27 +33,27 @@ const RoomPage = () => {
       return;
     }
 
-    const gameChannel = pusher.subscribe(`private-game-roomId${room.id}`)
+    const gameChannel = pusher.subscribe(`private-game-roomId${room.id}`);
     gameChannel.bind("refetch", (data: any) => {
-      const gameId = data.game.id
+      const gameId = data.game.id;
       if (!gameId) {
         return;
       }
       navigate(`/game`);
-    })
+    });
 
-    const roomChannel = pusher.subscribe(`private-room-roomId${room.id}`)
+    const roomChannel = pusher.subscribe(`private-room-roomId${room.id}`);
     roomChannel.bind("refetch", (data: any) => {
       if (data?.isLeaving.user.id !== user?.id || data?.isLeaving.user.isHost) {
-        refetchRoom()
+        refetchRoom();
       }
-    })
+    });
 
     return () => {
-      gameChannel.unbind_all()
-      roomChannel.unbind_all()
-    }
-  }, [user, pusher, room])
+      gameChannel.unbind_all();
+      roomChannel.unbind_all();
+    };
+  }, [user, pusher, room]);
 
   if (isError) {
     return <span>Error!</span>;
@@ -90,7 +90,7 @@ const RoomPage = () => {
           disabled={!isOpponent}
           className="bg-blue-500 text-white font-bold py-2 px-4 rounded disabled:pointer-events-none disabled:opacity-40"
           onClick={async () => {
-            createGame.mutate()
+            createGame.mutate();
           }}
         >
           {isOpponent ? "Start game" : "Waiting for an opponent..."}

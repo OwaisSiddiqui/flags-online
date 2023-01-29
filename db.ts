@@ -8,7 +8,7 @@ import {
 } from "@mikro-orm/core";
 import { Room, User, Flag, Question, Game } from "./entities";
 import { CustomGameRepository, CustomQuestionRepository } from "./repository";
-import MikroORMOptions from "./mikro-orm.config"
+import MikroORMOptions from "./mikro-orm.config";
 
 export const DI = {} as {
   orm: MikroORM;

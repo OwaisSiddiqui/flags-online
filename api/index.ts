@@ -40,7 +40,14 @@ if (!isProd()) {
   });
 }
 
-app.use(cors({ credentials: true, origin: isProd() ? undefined : `http://${getEnv('DEV_HOST')}:${getEnv(`DEV_PORT`)}` }));
+app.use(
+  cors({
+    credentials: true,
+    origin: isProd()
+      ? undefined
+      : `http://${getEnv("DEV_HOST")}:${getEnv(`DEV_PORT`)}`,
+  })
+);
 app.use(
   "/api/trpc",
   createExpressMiddleware({
@@ -57,4 +64,4 @@ if (!isProd()) {
   });
 }
 
-export default app
+export default app;

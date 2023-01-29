@@ -49,13 +49,13 @@ const QuestionComponent = ({
 };
 
 const Game = () => {
-  const { user } = useUser()
-  const { pusher } = usePusher()
+  const { user } = useUser();
+  const { pusher } = usePusher();
   const navigate = useNavigate();
 
   const [winner, setWinner] = useState<string>();
 
-  const { data: game } = trpc.game.getGame.useQuery()
+  const { data: game } = trpc.game.getGame.useQuery();
 
   const { data: penalty, refetch: refetchPenalty } =
     trpc.game.getPenalty.useQuery(undefined, {
@@ -64,14 +64,14 @@ const Game = () => {
       refetchOnReconnect: false,
       refetchOnWindowFocus: false,
       trpc: {
-        abortOnUnmount: true
-      }
+        abortOnUnmount: true,
+      },
     });
   const { data: question, refetch: refetchCurrentQuestion } =
     trpc.game.currentQuestion.useQuery(undefined, {
       enabled: !winner,
       retry: 0,
-      refetchOnWindowFocus: false
+      refetchOnWindowFocus: false,
     });
 
   useEffect(() => {
@@ -79,28 +79,30 @@ const Game = () => {
       return;
     }
 
-    const penaltyChannel = pusher.subscribe(`private-penalty-userId${user.id}`)
+    const penaltyChannel = pusher.subscribe(`private-penalty-userId${user.id}`);
     penaltyChannel.bind("refetch", () => {
-      console.log("Refetch!")
-      refetchPenalty()
-    })
+      console.log("Refetch!");
+      refetchPenalty();
+    });
 
-    const currentQuestionChannel = pusher.subscribe(`private-currentQuestion-gameId${game.id}`)
+    const currentQuestionChannel = pusher.subscribe(
+      `private-currentQuestion-gameId${game.id}`
+    );
     currentQuestionChannel.bind("refetch", () => {
-      refetchCurrentQuestion()
-    })
+      refetchCurrentQuestion();
+    });
 
-    const endGameChannel = pusher.subscribe(`private-endGame-gameId${game.id}`)
+    const endGameChannel = pusher.subscribe(`private-endGame-gameId${game.id}`);
     endGameChannel.bind("refetch", (winner: string) => {
-      setWinner(winner)
-    })
+      setWinner(winner);
+    });
 
     return () => {
-      penaltyChannel.unbind_all()
-      currentQuestionChannel.unbind_all()
-      endGameChannel.unbind_all()
-    }
-  }, [user, pusher, game])
+      penaltyChannel.unbind_all();
+      currentQuestionChannel.unbind_all();
+      endGameChannel.unbind_all();
+    };
+  }, [user, pusher, game]);
 
   return (
     <div className="flex flex-col p-5 gap-5 w-full items-center justify-center bg-gray-900">

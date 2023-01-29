@@ -16,8 +16,7 @@ type IToken = string | undefined;
 type SetToken = (token: IToken) => void;
 
 const UserContext = React.createContext<
-  | { user: UserState; token: IToken; setToken: SetToken }
-  | undefined
+  { user: UserState; token: IToken; setToken: SetToken } | undefined
 >(undefined);
 
 const UserProvider = ({
@@ -26,7 +25,7 @@ const UserProvider = ({
   const navigate = useNavigate();
   const { token, setToken } = useToken();
   const [user, setUser] = useState<UserState>();
-  const utils = trpc.useContext()
+  const utils = trpc.useContext();
 
   const { refetch } = trpc.user.getUser.useQuery(undefined, {
     refetchOnWindowFocus: false,
@@ -35,14 +34,14 @@ const UserProvider = ({
     enabled: !!token,
     onError(error) {
       if (error.data?.code === "UNAUTHORIZED") {
-        navigate("/")
+        navigate("/");
       }
     },
   });
 
   useEffect(() => {
     if (!token) {
-      utils.invalidate()
+      utils.invalidate();
       navigate("/");
     } else {
       refetch().then(({ data }) => {
@@ -61,7 +60,7 @@ const UserProvider = ({
         navigate("/home");
       }
     } else {
-      utils.invalidate()
+      utils.invalidate();
     }
   }, [user]);
 

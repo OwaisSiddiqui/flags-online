@@ -12,37 +12,49 @@ const Home = () => {
   const { token } = useToken();
   const [queryClient] = useState(() => new QueryClient());
   const [trpcClient] = useState(() => {
-    const SERVER_PORT = getEnv(import.meta.env.VITE_DEV_SERVER_PORT, 'VITE_DEV_SERVER_PORT')
+    const SERVER_PORT = getEnv(
+      import.meta.env.VITE_DEV_SERVER_PORT,
+      "VITE_DEV_SERVER_PORT"
+    );
     return trpc.createClient({
-      links: !isProd() ? [
-        splitLink({
-          condition(op) {
-            return op.type === "subscription";
-          },
-          true: wsLink({
-            client: createWSClient({
-              url: `ws://localhost:${SERVER_PORT}/api/trpc?token=${token}`,
+      links: !isProd()
+        ? [
+            splitLink({
+              condition(op) {
+                return op.type === "subscription";
+              },
+              true: wsLink({
+                client: createWSClient({
+                  url: `ws://localhost:${SERVER_PORT}/api/trpc?token=${token}`,
+                }),
+              }),
+              false: httpBatchLink({
+                url: `http://${getEnv(
+                  import.meta.env.VITE_DEV_SERVER_HOST,
+                  "VITE_DEV_SERVER_HOST"
+                )}:${SERVER_PORT}/api/trpc`,
+                headers: () => {
+                  return {
+                    Authorization: `Bearer ${
+                      token || localStorage.getItem("token")
+                    }`,
+                  };
+                },
+              }),
             }),
-          }),
-          false: httpBatchLink({
-            url: `http://${getEnv(import.meta.env.VITE_DEV_SERVER_HOST, 'VITE_DEV_SERVER_HOST')}:${SERVER_PORT}/api/trpc`,
-            headers: () => {
-              return {
-                Authorization: `Bearer ${token || localStorage.getItem("token")}`,
-              }
-            },
-          }),
-        }),
-      ] : [
-        httpBatchLink({
-          url: `/api/trpc`,
-          headers: () => {
-            return {
-              Authorization: `Bearer ${token || localStorage.getItem("token")}`,
-            }
-          },
-        })
-      ],
+          ]
+        : [
+            httpBatchLink({
+              url: `/api/trpc`,
+              headers: () => {
+                return {
+                  Authorization: `Bearer ${
+                    token || localStorage.getItem("token")
+                  }`,
+                };
+              },
+            }),
+          ],
     });
   });
 
