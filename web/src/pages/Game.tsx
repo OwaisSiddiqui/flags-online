@@ -55,7 +55,9 @@ const Game = () => {
 
   const [winner, setWinner] = useState<string>();
 
-  const { data: game } = trpc.game.getGame.useQuery();
+  const { data: game } = trpc.game.getGame.useQuery(undefined, {
+    enabled: !winner
+  });
 
   const { data: penalty, refetch: refetchPenalty } =
     trpc.game.getPenalty.useQuery(undefined, {

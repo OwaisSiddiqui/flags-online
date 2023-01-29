@@ -15,7 +15,7 @@ const CreateRoom = () => {
   } = useForm<IFormInput>();
   const onSubmit: SubmitHandler<IFormInput> = (data) => {
     const roomName = data.roomName;
-    addRoom
+    createRoom
       .mutateAsync({
         roomName: roomName,
       })
@@ -24,7 +24,7 @@ const CreateRoom = () => {
       });
   };
   const navigate = useNavigate();
-  const addRoom = trpc.room.addRoom.useMutation();
+  const createRoom = trpc.room.createRoom.useMutation();
 
   return (
     <div className="flex-1 bg-white p-6 inset-0 z-2">

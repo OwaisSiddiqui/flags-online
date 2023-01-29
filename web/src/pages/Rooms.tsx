@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { GetRoomsOutput, trpc } from "../utils/trpc";
 import { useUser } from "../providers/userContext";
 import { usePusher } from "../providers/pusherContext";
+import { useToken } from "../providers/tokenContext";
 
 const RoomBox = ({ room }: { room: GetRoomsOutput[number] }) => {
   const navigate = useNavigate();
@@ -34,6 +35,8 @@ const RoomBox = ({ room }: { room: GetRoomsOutput[number] }) => {
 };
 
 const RoomsPage = () => {
+  const navigate = useNavigate()
+  const { setToken } = useToken()
   const { pusher } = usePusher();
   const { isError, isLoading, data, refetch } = trpc.room.getRooms.useQuery();
   const { user } = useUser();
@@ -87,6 +90,14 @@ const RoomsPage = () => {
             Logged in as: {user.username}
           </div>
         )}
+      </div>
+      <div className="flex flex-col py-6 px-2 items-end justify-end">
+        <button onClick={() => {
+            setToken("")
+            navigate("/")
+          }} className="bg-red-300 text-red-700 p-2 self-end rounded-sm">
+            Logout
+        </button>
       </div>
     </div>
   );

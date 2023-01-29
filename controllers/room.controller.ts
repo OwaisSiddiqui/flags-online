@@ -1,4 +1,4 @@
-import { RoomSchema, AddRoomSchema } from "../schemas";
+import { RoomSchema, CreateRoomSchema } from "../schemas";
 import { DI } from "../db";
 import { protectedProcedure, router } from "../trpc";
 import { pusher } from "../pusher";
@@ -19,8 +19,8 @@ export const roomRouter = router({
     }
     return result;
   }),
-  addRoom: protectedProcedure
-    .input(AddRoomSchema)
+  createRoom: protectedProcedure
+    .input(CreateRoomSchema)
     .mutation(async ({ input, ctx }) => {
       const roomName = input.roomName;
       const { userId } = ctx;
@@ -38,16 +38,16 @@ export const roomRouter = router({
       if (!(user.type === "default")) {
         throw errors.USER_NOT_DEFAULT;
       }
-        user.type = "host";
-        const room = DI.roomRepository.create({
-          guests: [],
-          host: user,
-          name: roomName,
-        });
-        user.room = room;
-        await DI.userRepositroy.persistAndFlush(user);
-        await DI.roomRepository.persistAndFlush(room);
-        pusher.trigger(`private-rooms`, "refetch", null);
+      user.type = "host";
+      const room = DI.roomRepository.create({
+        guests: [],
+        host: user,
+        name: roomName,
+      });
+      user.room = room;
+      await DI.userRepositroy.persistAndFlush(user);
+      await DI.roomRepository.persistAndFlush(room);
+      pusher.trigger(`private-rooms`, "refetch", null);
     }),
   getRoom: protectedProcedure.query(async ({ ctx }) => {
     const { userId } = ctx;
@@ -67,7 +67,7 @@ export const roomRouter = router({
         id: user.room?.id,
       },
       {
-        populate: ["guests", "host", "opponent"],
+        populate: ["guests.username", "guests.id", "guests.type", "host.id", "host.username", "opponent.id", "opponent.username"],
       }
     );
     if (!room) {
@@ -94,6 +94,50 @@ export const roomRouter = router({
         guests: guests,
       };
   }),
+  joinRoom: protectedProcedure
+    .input(RoomSchema)
+    .mutation(async ({ input, ctx }) => {
+      const room = await DI.roomRepository.findOne(
+        {
+          id: input.roomId,
+        },
+        {
+          populate: ["id"],
+        }
+      );
+      if (!room) {
+        throw errors.ROOM_NOT_FOUND;
+      }
+      const { userId } = ctx;
+      const user = await DI.userRepositroy.findOne(
+        {
+          id: userId,
+        },
+        {
+          populate: ["room", "type"],
+        }
+      );
+      if (!user) {
+        throw errors.USER_NOT_FOUND;
+      }
+      if (!(user.type === "default")) {
+        throw errors.USER_NOT_DEFAULT
+      }
+      if (user.room) {
+        throw errors.USER_ALREADY_IN_ROOM;
+      }
+        user.room = room;
+        if (!room.opponent) {
+          user.type = "opponent";
+          room.opponent = user;
+        } else {
+          user.type = "guest";
+        }
+        await DI.userRepositroy.persistAndFlush(user);
+        await DI.roomRepository.persistAndFlush(room);
+        pusher.trigger(`private-room-roomId${room.id}`, "refetch", null);
+        pusher.trigger(`private-rooms`, "refetch", null);
+    }),
   leaveRoom: protectedProcedure.mutation(async ({ ctx }) => {
     const { userId } = ctx;
     const user = await DI.userRepositroy.findOne(
@@ -146,47 +190,6 @@ export const roomRouter = router({
       isLeaving: { user: { id: user.id, isHost: userType === "host" } },
     });
     pusher.trigger(`private-rooms`, "refetch", null);
-  }),
-  joinRoom: protectedProcedure
-    .input(RoomSchema)
-    .mutation(async ({ input, ctx }) => {
-      const room = await DI.roomRepository.findOne(
-        {
-          id: input.roomId,
-        },
-        {
-          populate: ["id"],
-        }
-      );
-      if (!room) {
-        throw errors.ROOM_NOT_FOUND;
-      }
-      const { userId } = ctx;
-      const user = await DI.userRepositroy.findOne(
-        {
-          id: userId,
-        },
-        {
-          populate: ["room", "type"],
-        }
-      );
-      if (!user) {
-        throw errors.USER_NOT_FOUND;
-      }
-      if (user.room) {
-        throw errors.USER_ALREADY_IN_ROOM;
-      }
-        user.room = room;
-        if (!room.opponent) {
-          user.type = "opponent";
-          room.opponent = user;
-        } else {
-          user.type = "guest";
-        }
-        await DI.userRepositroy.persistAndFlush(user);
-        await DI.roomRepository.persistAndFlush(room);
-        pusher.trigger(`private-room-roomId${room.id}`, "refetch", null);
-        pusher.trigger(`private-rooms`, "refetch", null);
-    }),
+  })
 });
-`                 `;
+

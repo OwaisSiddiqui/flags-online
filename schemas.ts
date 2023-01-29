@@ -15,7 +15,7 @@ export const LoginSchema = z.object({
   password: z.string(),
 });
 
-export const AddRoomSchema = z.object({
+export const CreateRoomSchema = z.object({
   roomName: z.string(),
 });
 

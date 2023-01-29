@@ -16,9 +16,9 @@ const clearGame = (user: User) => {
 const countdownPenalty = async (game: Game, userId: string) => {
   for (let i = 3; i >= 0; i--) {
     if (game.room.host.id === userId) {
-      game.hostPenalty = 0;
+      game.hostPenalty = i;
     } else if (game.room.opponent?.id === userId) {
-      game.opponentPenalty = 0;
+      game.opponentPenalty = i;
     }
     await DI.gameRepository.persistAndFlush(game);
     pusher.trigger(`private-penalty-userId${userId}`, "refetch", null);
@@ -232,7 +232,7 @@ export const gameRouter = router({
           "refetch",
           null
         );
-      } else {
+      } else if (penalty === 0) {
         await DI.gameRepository.persistAndFlush(game);
         if (game.room.host.id === userId) {
           await countdownPenalty(game, userId);
@@ -241,6 +241,8 @@ export const gameRouter = router({
         } else {
           throw errors.USER_NOT_HOST_OR_OPPONENT;
         }
+      } else {
+        throw errors.PENALTY_IS_NOT_ZERO
       }
     }),
   currentQuestion: protectedProcedure.query(async ({ ctx }) => {

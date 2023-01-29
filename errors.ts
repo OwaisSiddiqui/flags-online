@@ -20,7 +20,8 @@ type CustomErrorTypes =
   | "USER_NOT_HOST_OR_OPPONENT"
   | "USER_HAS_NO_ROOM"
   | "QUESTION_NOT_FOUND"
-  | "USER_IS_DEFAULT";
+  | "USER_IS_DEFAULT"
+  | "PENALTY_IS_NOT_ZERO";
 
 class CustomError extends Error {
   type: CustomErrorTypes;
@@ -107,6 +108,11 @@ export const QUESTION_NOT_FOUND = new CustomError({
 export const USER_CANNOT_BE_DEFAULT = new CustomError({
   message: "User is default and should not be",
   type: "QUESTION_NOT_FOUND",
+});
+
+export const PENALTY_IS_NOT_ZERO = new CustomError({
+  message: "Penalty is not zero",
+  type: "PENALTY_IS_NOT_ZERO",
 });
 
 export const isCustomError = (error: unknown): error is CustomError => {

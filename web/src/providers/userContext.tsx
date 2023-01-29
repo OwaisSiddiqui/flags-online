@@ -29,6 +29,7 @@ const UserProvider = ({
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
+    retry: 0,
     enabled: !!token,
     onError(error) {
       if (error.data?.code === "UNAUTHORIZED") {

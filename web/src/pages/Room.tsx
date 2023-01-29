@@ -61,14 +61,17 @@ const RoomPage = () => {
   if (isLoading) {
     return <span>Loading...</span>;
   }
+  if (!user) {
+    return <span>Getting user...</span>
+  }
 
   return (
     <div className="flex items-start content-center flex-col gap-4">
-      <div>Host: {room.host.id === user?.id ? "You" : room.host.username}</div>
+      <div>Host: {room.host.id === user.id ? "You" : room.host.username}</div>
       <div>
         Opponent:{" "}
         {isOpponent
-          ? room.opponent.id === user?.id
+          ? room.opponent.id === user.id
             ? "You"
             : room.opponent.username
           : "Waiting for an opponent..."}
@@ -85,7 +88,7 @@ const RoomPage = () => {
           }
         })}
       </ul>
-      {user?.id === room.host.id && (
+      {user.id === room.host.id && (
         <button
           disabled={!isOpponent}
           className="bg-blue-500 text-white font-bold py-2 px-4 rounded disabled:pointer-events-none disabled:opacity-40"
