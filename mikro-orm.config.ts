@@ -17,11 +17,11 @@ let options = {
 if (isProd()) {
   options = {
     ...options,
-    dbName: getEnv("AWS_RDS_FLAGS_ONLINE_POSTGRESQL_DB_NAME"),
-    host: getEnv("AWS_RDS_FLAGS_ONLINE_POSTGRESQL_HOSTNAME"),
-    port: parseInt(getEnv("AWS_RDS_FLAGS_ONLINE_POSTGRESQL_PORT")),
-    user: getEnv("AWS_RDS_FLAGS_ONLINE_POSTGRESQL_USERNAME"),
-    password: getEnv("AWS_RDS_FLAGS_ONLINE_POSTGRESQL_PASSWORD")
+    dbName: getEnv("SUPABASE_FLAGS_ONLINE_POSTGRESQL_DB_NAME"),
+    host: getEnv("SUPABASE_FLAGS_ONLINE_POSTGRESQL_HOSTNAME"),
+    port: parseInt(getEnv("SUPABASE_FLAGS_ONLINE_POSTGRESQL_PORT")),
+    user: getEnv("SUPABASE_FLAGS_ONLINE_POSTGRESQL_USERNAME"),
+    password: getEnv("SUPABASE_FLAGS_ONLINE_POSTGRESQL_PASSWORD")
   }
 } else {
   options = {...options, dbName: getEnv("PGDB"),}
