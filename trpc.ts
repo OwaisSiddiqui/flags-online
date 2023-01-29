@@ -1,5 +1,5 @@
 import { initTRPC, TRPCError } from "@trpc/server";
-import { DI as OldDI, initDI } from "./db";
+import { DI as OldDI, initDb, initDI } from "./db";
 import { inferAsyncReturnType } from "@trpc/server";
 import { authenticateToken, getEnv } from "./utils";
 import { RequestContext } from "@mikro-orm/core";
@@ -29,6 +29,7 @@ export const createContext = async (
       return null;
     }
   };
+  await initDb()
   const DI = initDI(OldDI.em.fork());
   const userId = await getUserIdFromHeader();
   let user: null | User = null;

@@ -56,8 +56,6 @@ app.use(
   })
 );
 
-initDb();
-
 if (!isProd()) {
   server.listen(PORT, "localhost", () => {
     console.log(`HTTP server listening on port ${PORT}`);
