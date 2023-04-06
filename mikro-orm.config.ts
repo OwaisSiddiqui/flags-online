@@ -24,7 +24,7 @@ if (isProd()) {
     password: getEnv("SUPABASE_FLAGS_ONLINE_POSTGRESQL_PASSWORD"),
   };
 } else {
-  options = { ...options, dbName: getEnv("PGDB") };
+  options = { ...options, clientUrl: getEnv("PG_DEV_CONNECTION_URI") };
 }
 
 export default options;

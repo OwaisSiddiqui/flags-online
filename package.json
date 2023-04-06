@@ -8,8 +8,8 @@
     "start:web": "cd web && npm run start",
     "dev:db:seed": "cross-env NODE_ENV=dev npx mikro-orm seeder:run",
     "prod:db:seed": "cross-env NODE_ENV=prod npx mikro-orm seeder:run",
-    "dev:db:init": "cross-env NODE_ENV=dev npx mikro-orm migration:create && NODE_ENV=dev npx mikro-orm migration:up",
-    "prod:db:init": "cross-env NODE_ENV=prod npx mikro-orm migration:create && NODE_ENV=prod npx mikro-orm migration:up",
+    "dev:db:init": "cross-env NODE_ENV=dev npx mikro-orm migration:create && cross-env NODE_ENV=dev npx mikro-orm migration:up",
+    "prod:db:init": "cross-env NODE_ENV=prod npx mikro-orm migration:create && cross-env NODE_ENV=prod npx mikro-orm migration:up",
     "build:vercel": "cd web && npm run build"
   },
   "dependencies": {
