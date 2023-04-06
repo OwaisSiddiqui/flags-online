@@ -1,15 +1,15 @@
 {
   "scripts": {
-    "dev:server": "NODE_ENV=dev nodemon api/index.ts --ignore 'web/*'",
+    "dev:server": "cross-env NODE_ENV=dev nodemon api/index.ts --ignore 'web/*'",
     "dev:web": "cd web && npm run dev",
     "build:web": "cd web && npm run build",
     "build:server": "tsc",
     "start:server": "node build/api/index.js",
     "start:web": "cd web && npm run start",
-    "dev:db:seed": "NODE_ENV=dev npx mikro-orm seeder:run",
-    "prod:db:seed": "NODE_ENV=prod npx mikro-orm seeder:run",
-    "dev:db:init": "NODE_ENV=dev npx mikro-orm migration:create && NODE_ENV=dev npx mikro-orm migration:up",
-    "prod:db:init": "NODE_ENV=prod npx mikro-orm migration:create && NODE_ENV=prod npx mikro-orm migration:up",
+    "dev:db:seed": "cross-env NODE_ENV=dev npx mikro-orm seeder:run",
+    "prod:db:seed": "cross-env NODE_ENV=prod npx mikro-orm seeder:run",
+    "dev:db:init": "cross-env NODE_ENV=dev npx mikro-orm migration:create && NODE_ENV=dev npx mikro-orm migration:up",
+    "prod:db:init": "cross-env NODE_ENV=prod npx mikro-orm migration:create && NODE_ENV=prod npx mikro-orm migration:up",
     "build:vercel": "cd web && npm run build"
   },
   "dependencies": {
@@ -42,6 +42,7 @@
     "@types/ws": "^8.5.3",
     "@typescript-eslint/eslint-plugin": "^5.46.0",
     "@typescript-eslint/parser": "^5.46.0",
+    "cross-env": "^7.0.3",
     "eslint": "^8.29.0",
     "nodemon": "^2.0.20",
     "prettier": "^2.8.1",
