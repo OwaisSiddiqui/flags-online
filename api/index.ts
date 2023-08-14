@@ -23,8 +23,6 @@ export const appRouter = router({
 export type AppRouter = typeof appRouter;
 
 (async () => {
-  await initDI();
-
   const PORT = parseInt(getEnv("PORT"));
 
   if (!isProd()) {
