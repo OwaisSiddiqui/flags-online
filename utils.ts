@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { DI } from "./db";
+import { DIType } from "./db";
 import * as errors from "./errors";
 
 export const getEnv = (name: string) => {
@@ -43,7 +43,7 @@ export const generateTokenSecret = () => {
 export const sleep = (waitTimeInMs: number) =>
   new Promise((resolve) => setTimeout(resolve, waitTimeInMs));
 
-export const getUser = async (data: { id: string } | { username: string }) => {
+export const getUser = async (DI: DIType, data: { id: string } | { username: string }) => {
   if ("id" in data) {
     const user = await DI.userRepositroy.findOne({
       id: data.id,

@@ -1,5 +1,4 @@
 import { initTRPC, TRPCError } from "@trpc/server";
-import { DI as OldDI, initDb, initDI } from "./db";
 import { inferAsyncReturnType } from "@trpc/server";
 import { authenticateToken, getEnv } from "./utils";
 import { RequestContext } from "@mikro-orm/core";
@@ -8,6 +7,7 @@ import { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 import { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import { JwtPayload } from "jsonwebtoken";
 import { isCustomError } from "./errors";
+import { DI } from "./db";
 
 export const createContext = async (
   opts: CreateExpressContextOptions | CreateWSSContextFnOptions
@@ -29,8 +29,6 @@ export const createContext = async (
       return null;
     }
   };
-  await initDb()
-  const DI = initDI(OldDI.em.fork());
   const userId = await getUserIdFromHeader();
   let user: null | User = null;
   if (typeof userId === "string") {
@@ -48,6 +46,7 @@ export const createContext = async (
     userId: user?.id,
     req: opts.req,
     res: opts.res,
+    DI: DI
   };
 };
 
@@ -65,12 +64,8 @@ const t = initTRPC.context<Context>().create({
   },
 });
 
-export const mikroORMMiddleware = t.middleware(async ({ next, ctx }) => {
-  return RequestContext.createAsync(OldDI.orm.em, () => next({ ctx }));
-});
-
 export const router = t.router;
-export const publicProcedure = t.procedure.use(mikroORMMiddleware);
+export const publicProcedure = t.procedure
 
 const isAuthed = t.middleware(({ next, ctx }) => {
   if (!ctx.userId) {

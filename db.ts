@@ -10,7 +10,7 @@ import { Room, User, Flag, Question, Game } from "./entities";
 import { CustomGameRepository, CustomQuestionRepository } from "./repository";
 import MikroORMOptions from "./mikro-orm.config";
 
-export const DI = {} as {
+export type DIType = {
   orm: MikroORM;
   em: EntityManager;
   userRepositroy: EntityRepository<User>;
@@ -20,21 +20,20 @@ export const DI = {} as {
   gameRepository: CustomGameRepository;
 };
 
-export const initDb = async () => {
-  const orm = await MikroORM.init<PostgreSqlDriver>(MikroORMOptions);
+export const DI = {} as DIType;
 
-  DI.orm = orm;
-  initDI(orm.em);
+export const initDI = async () => {
+  DI.orm = await MikroORM.init<PostgreSqlDriver>(MikroORMOptions);
 
-  return DI;
-};
+  const fork = DI.orm.em.fork()
 
-export const initDI = (em: EntityManager<IDatabaseDriver<Connection>>) => {
-  DI.em = em;
+  DI.em = fork;
+
+  const em = DI.em;
+
   DI.userRepositroy = em.getRepository(User);
   DI.roomRepository = em.getRepository(Room);
   DI.flagRepository = em.getRepository(Flag);
   DI.questionRepository = em.getRepository(Question);
   DI.gameRepository = em.getRepository(Game);
-  return DI;
 };

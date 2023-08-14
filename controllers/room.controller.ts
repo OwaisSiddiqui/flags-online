@@ -1,11 +1,11 @@
 import { RoomSchema, CreateRoomSchema } from "../schemas";
-import { DI } from "../db";
 import { protectedProcedure, router } from "../trpc";
 import { pusher } from "../pusher";
 import * as errors from "../errors";
 
 export const roomRouter = router({
-  getRooms: protectedProcedure.query(async () => {
+  getRooms: protectedProcedure.query(async ({ ctx }) => {
+    const { DI } = ctx
     const rooms = await DI.roomRepository.findAll({
       populate: ["id", "name", "guests.id"],
     });
@@ -22,6 +22,7 @@ export const roomRouter = router({
   createRoom: protectedProcedure
     .input(CreateRoomSchema)
     .mutation(async ({ input, ctx }) => {
+      const { DI } = ctx
       const roomName = input.roomName;
       const { userId } = ctx;
       const user = await DI.userRepositroy.findOne(
@@ -50,6 +51,7 @@ export const roomRouter = router({
       await pusher.trigger(`private-rooms`, "refetch", null);
     }),
   getRoom: protectedProcedure.query(async ({ ctx }) => {
+    const { DI } = ctx
     const { userId } = ctx;
     const user = await DI.userRepositroy.findOne(
       {
@@ -97,6 +99,7 @@ export const roomRouter = router({
   joinRoom: protectedProcedure
     .input(RoomSchema)
     .mutation(async ({ input, ctx }) => {
+      const { DI } = ctx
       const room = await DI.roomRepository.findOne(
         {
           id: input.roomId,
@@ -139,6 +142,7 @@ export const roomRouter = router({
         await pusher.trigger(`private-rooms`, "refetch", null);
     }),
   leaveRoom: protectedProcedure.mutation(async ({ ctx }) => {
+    const { DI } = ctx
     const { userId } = ctx;
     const user = await DI.userRepositroy.findOne(
       {

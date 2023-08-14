@@ -4,7 +4,6 @@ import {
   SignupSchema,
   UserExistsSchema
 } from "../schemas";
-import { DI } from "../db";
 import { protectedProcedure, publicProcedure, router } from "../trpc";
 import bcrypt from "bcrypt";
 import { generateAccessToken, getEnv } from "../utils";
@@ -14,7 +13,7 @@ import { TRPCError } from "@trpc/server";
 
 export const userRouter = router({
   getUser: protectedProcedure.query(async ({ ctx }) => {
-    const { userId } = ctx;
+    const { DI, userId } = ctx;
     const user = await DI.userRepositroy.findOne(
       {
         id: userId,
@@ -40,7 +39,8 @@ export const userRouter = router({
   }),
   isUserExist: publicProcedure
     .input(UserExistsSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const { DI } = ctx
       return !!(await DI.userRepositroy.findOne({
         username: input.username,
       }));
@@ -48,6 +48,7 @@ export const userRouter = router({
   signup: publicProcedure
     .input(SignupSchema)
     .mutation(async ({ input, ctx }) => {
+      const { DI } = ctx
       const isUserExist = await DI.userRepositroy.findOne({
         username: input.username,
       });
@@ -71,6 +72,7 @@ export const userRouter = router({
         return generateAccessToken(user.id);
     }),
   login: publicProcedure.input(LoginSchema).mutation(async ({ input, ctx }) => {
+    const { DI } = ctx
     const user = await DI.userRepositroy.findOne({
       username: input.username,
     });
@@ -90,6 +92,7 @@ export const userRouter = router({
   pusherUserAuth: protectedProcedure
     .input(PusherUserAuthSchema)
     .mutation(async ({ input, ctx }) => {
+      const { DI } = ctx
       const { userId } = ctx;
       const user = await DI.userRepositroy.findOne(
         {

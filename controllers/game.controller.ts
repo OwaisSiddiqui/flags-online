@@ -1,10 +1,10 @@
-import { DI } from "../db";
 import { Game, User } from "../entities";
 import { FlagSchema, QuestionSchema } from "../schemas";
 import { protectedProcedure, router } from "../trpc";
 import { sleep } from "../utils";
 import * as errors from "../errors";
 import { pusher } from "../pusher";
+import { DIType } from "../db";
 
 const clearGame = (user: User) => {
   const room = user.room;
@@ -13,7 +13,7 @@ const clearGame = (user: User) => {
   }
 };
 
-const countdownPenalty = async (game: Game, userId: string) => {
+const countdownPenalty = async (DI: DIType, game: Game, userId: string) => {
   for (let i = 3; i >= 0; i--) {
     if (game.room.host.id === userId) {
       game.hostPenalty = i;
@@ -28,6 +28,7 @@ const countdownPenalty = async (game: Game, userId: string) => {
 
 export const gameRouter = router({
   getGame: protectedProcedure.query(async ({ ctx }) => {
+    const { DI } = ctx
     const { userId } = ctx;
     const user = await DI.userRepositroy.findOne(
       {
@@ -49,7 +50,7 @@ export const gameRouter = router({
     };
   }),
   createGame: protectedProcedure.mutation(async ({ ctx }) => {
-    const { userId } = ctx;
+    const { DI, userId } = ctx;
     const user = await DI.userRepositroy.findOne(
       {
         id: userId,
@@ -83,7 +84,7 @@ export const gameRouter = router({
     });
   }),
   getPenalty: protectedProcedure.query(async ({ ctx }) => {
-    const { userId } = ctx;
+    const { DI, userId } = ctx;
     const user = await DI.userRepositroy.findOne(
       {
         id: userId,
@@ -123,7 +124,7 @@ export const gameRouter = router({
   handleAnswer: protectedProcedure
     .input(QuestionSchema.merge(FlagSchema))
     .mutation(async ({ input, ctx }) => {
-      const { userId } = ctx;
+      const { DI, userId } = ctx;
       const user = await DI.userRepositroy.findOne(
         {
           id: userId,
@@ -234,9 +235,9 @@ export const gameRouter = router({
       } else if (penalty === 0) {
         await DI.gameRepository.persistAndFlush(game);
         if (game.room.host.id === userId) {
-          await countdownPenalty(game, userId);
+          await countdownPenalty(DI, game, userId);
         } else if (game.room.opponent?.id === userId) {
-          await countdownPenalty(game, userId);
+          await countdownPenalty(DI, game, userId);
         } else {
           throw errors.USER_NOT_HOST_OR_OPPONENT;
         }
@@ -246,7 +247,7 @@ export const gameRouter = router({
       }
     }),
   currentQuestion: protectedProcedure.query(async ({ ctx }) => {
-    const { userId } = ctx;
+    const { DI, userId } = ctx;
     const user = await DI.userRepositroy.findOne(
       {
         id: userId,
