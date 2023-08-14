@@ -22,46 +22,44 @@ export const appRouter = router({
 });
 export type AppRouter = typeof appRouter;
 
-(async () => {
-  const PORT = parseInt(getEnv("PORT"));
+const PORT = parseInt(getEnv("PORT"));
 
-  if (!isProd()) {
-    const wss = new ws.Server({
-      server,
+if (!isProd()) {
+  const wss = new ws.Server({
+    server,
+  });
+  applyWSSHandler({ wss, router: appRouter, createContext });
+  wss.on("listening", () => {
+    console.log(`WebSocket server listening on port ${PORT}`);
+  });
+  wss.on("connection", (ws) => {
+    console.log("+ WebSocket connection");
+    ws.once("close", () => {
+      console.log("- WebSocket connection");
     });
-    applyWSSHandler({ wss, router: appRouter, createContext });
-    wss.on("listening", () => {
-      console.log(`WebSocket server listening on port ${PORT}`);
-    });
-    wss.on("connection", (ws) => {
-      console.log("+ WebSocket connection");
-      ws.once("close", () => {
-        console.log("- WebSocket connection");
-      });
-    });
-  }
+  });
+}
 
-  app.use(
-    cors({
-      credentials: true,
-      origin: isProd()
-        ? undefined
-        : `http://${getEnv("DEV_HOST")}:${getEnv(`DEV_PORT`)}`,
-    })
-  );
-  app.use(
-    "/api/trpc",
-    createExpressMiddleware({
-      router: appRouter,
-      createContext,
-    })
-  );
+app.use(
+  cors({
+    credentials: true,
+    origin: isProd()
+      ? undefined
+      : `http://${getEnv("DEV_HOST")}:${getEnv(`DEV_PORT`)}`,
+  })
+);
+app.use(
+  "/api/trpc",
+  createExpressMiddleware({
+    router: appRouter,
+    createContext,
+  })
+);
 
-  if (!isProd()) {
-    server.listen(PORT, "localhost", () => {
-      console.log(`HTTP server listening on port ${PORT}`);
-    });
-  }
-})()
+if (!isProd()) {
+  server.listen(PORT, "localhost", () => {
+    console.log(`HTTP server listening on port ${PORT}`);
+  });
+}
 
 export default app;

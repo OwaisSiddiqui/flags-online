@@ -7,7 +7,7 @@ import { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 import { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import { JwtPayload } from "jsonwebtoken";
 import { isCustomError } from "./errors";
-import { DI } from "./db";
+import { DI, initDI } from "./db";
 
 export const createContext = async (
   opts: CreateExpressContextOptions | CreateWSSContextFnOptions
@@ -29,6 +29,11 @@ export const createContext = async (
       return null;
     }
   };
+  let DIReturn;
+  if (!DI.em) {
+    await initDI()
+  }
+  DIReturn = DI;
   const userId = await getUserIdFromHeader();
   let user: null | User = null;
   if (typeof userId === "string") {
@@ -46,7 +51,7 @@ export const createContext = async (
     userId: user?.id,
     req: opts.req,
     res: opts.res,
-    DI: DI
+    DI: DIReturn
   };
 };
 
