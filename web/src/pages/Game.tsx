@@ -34,7 +34,7 @@ const QuestionComponent = ({
   question,
 }: PropsWithChildren<{ question: Question }>) => {
   return (
-    <div className={`flex-col gap-3`}>
+    <div className={`flex-col gap-3 `}>
       <img
         className="transition duration-300 transform"
         height="500px"
@@ -106,7 +106,7 @@ const Game = () => {
   }, [user, pusher, game]);
 
   return (
-    <div className="flex flex-col p-5 gap-5 w-full items-center justify-center bg-gray-900">
+    <div className="flex flex-col min-h-screen p-5 gap-5 w-full items-center justify-center bg-gray-900">
       <div className="flex flex-col gap-5">
         {winner ? (
           <div className="text-lg text-white">

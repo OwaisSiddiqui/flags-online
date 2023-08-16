@@ -27,7 +27,7 @@ const CreateRoom = () => {
   const createRoom = trpc.room.createRoom.useMutation();
 
   return (
-    <div className="flex-1 bg-white p-6 inset-0 z-2">
+    <div className="flex-1 bg-white p-6 inset-0 z-2 min-h-screen">
       <h2 className="font-bold text-black mb-4 text-3xl">Create a Room</h2>
       <form
         onSubmit={handleSubmit(onSubmit)}

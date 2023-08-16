@@ -66,7 +66,7 @@ const RoomPage = () => {
   }
 
   return (
-    <div className="flex items-start content-center flex-col gap-4">
+    <div className="bg-white flex items-start content-center flex-col gap-4 min-h-screen">
       <div>Host: {room.host.id === user.id ? "You" : room.host.username}</div>
       <div>
         Opponent:{" "}

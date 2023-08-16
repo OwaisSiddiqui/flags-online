@@ -61,8 +61,8 @@ const Home = () => {
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <div className="flex w-screen h-screen">
-          <div className="flex flex-1">
+        <div className="">
+          <div className="">
             <UserProvider>
               <PusherProvidier>
                 <Outlet />

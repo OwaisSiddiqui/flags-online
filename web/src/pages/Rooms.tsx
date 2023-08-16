@@ -56,7 +56,7 @@ const RoomsPage = () => {
   }, [user, pusher]);
 
   return (
-    <div className="flex flex-1 bg-white z-2 min-w-0">
+    <div className="flex flex-1 bg-white z-2 min-w-0 min-h-screen">
       <div className="flex flex-1 flex-col justify-between p-6 min-w-0">
         <div className="flex items-start flex-col min-w-0 gap-4">
           <h2 className="font-bold text-gray-500">ROOMS</h2>

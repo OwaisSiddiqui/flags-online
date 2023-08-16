@@ -257,13 +257,12 @@ export const Landing = () => {
   const [isLogin, setIsLogin] = useState(false);
 
   return (
-    <div className="bg-[url('public/images/flags-hero.png')] bg-no-repeat bg-center flex items-center justify-center w-screen h-screen bg-cover">
-      <div className="flex self-center items-center justify-center flex-col gap-20 p-10">
+      <div className="mt-5 flex self-center items-center justify-center flex-col gap-10">
         <h1 className="text-center drop-shadow-xl font-sans text-5xl text-white font-black">
           Guess The World Flag - Multiplayer
         </h1>
         <div
-          className="flex flex-col gap-5 items-center jusitfy-center bg-white p-5 rounded-md w-96 h-96 overflow-y-auto"
+          className="flex flex-col gap-5 items-center jusitfy-center bg-white p-5 rounded-md w-full max-w-sm"
           style={{ scrollbarGutter: "stable" }}
         >
           <div className="flex gap-10 bg-white border-b-2 border-gray-200 pb-5">
@@ -287,6 +286,5 @@ export const Landing = () => {
           {isLogin ? <LoginForm /> : <SignupForm />}
         </div>
       </div>
-    </div>
   );
 };
