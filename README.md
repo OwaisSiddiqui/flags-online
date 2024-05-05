@@ -4,7 +4,7 @@
 Flags Online is an online multiplayer game where players compete in 1v1 matches to guess world flags.
 ## Features
 - Accounts (user sign up w/ username/password, login)
-- Room creation (w/ one host vs one opponent, and unlimited guests)
+- Rooms (create/join/leave room, w/ one host vs one opponent, and unlimited guests)
 - Realtime 1v1 (instant answer feedback, updated to opponent, host, and guests)
 - Penalty for wrong answer (3 second timer)
 ## Technologies
