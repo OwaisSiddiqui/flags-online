@@ -13,13 +13,15 @@ Everything was written in TypeScript.
 
 #### Frontend:
 - React (w/ Vite)
+
 Other:
 - React Router (for routing)
-- React Hook Form (for building robust forms)
-- PusherJS (frontend handle Pusher)
+- React Hook Form (for building good forms)
+- PusherJS (frontend library to handle Pusher)
 
 #### Backend:
-- Express.js 
+- Express.js
+
 Other:
 - Mikro ORM (database ORM with Postgres)
 - tRPC (for typesafe APIs)
