@@ -2,7 +2,11 @@
 # Flags-Online.com
 
 Flags Online is an online multiplayer game where players compete in 1v1 matches to guess world flags.
-
+## Features
+- Accounts (user sign up w/ username/password, login)
+- Room creation (w/ one host vs one opponent, and unlimited guests)
+- Realtime 1v1 (instant answer feedback, updated to opponent, host, and guests)
+- Penalty for wrong answer (3 second timer)
 ## Technologies
 
 Everything was written in TypeScript.
@@ -26,12 +30,6 @@ Other:
 - Vercel (CDN)
 - Supabase (hosted Postgres database)
 - Pusher (hosted WebSockets)
-## Features
-- Accounts (user sign up w/ username/password, login)
-- Room creation (w/ one host vs one opponent, and unlimited guests)
-- Realtime 1v1 (instant answer feedback, updated to opponent, host, and guests)
-- Penalty for wrong answer (3 second timer)
-
 ## Installation
 First clone this repository and cd into the folder in your terminal. Then install the node modules by running:
 ```
